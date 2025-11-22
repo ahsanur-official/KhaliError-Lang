@@ -1,336 +1,748 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KhaliError Visualizer Ultimate</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Orbitron:wght@700&family=Inter:wght@400;600;700&family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Orbitron:wght@700&family=Inter:wght@400;600;700&family=Hind+Siliguri:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
-        /* --- 1. THEME VARIABLES --- */
-        :root {
-            --bg-color: #0d1117;
-            --panel-bg: #161b22;
-            --border-color: #30363d;
-            --accent-color: #58a6ff;
-            
-            /* Syntax Colors */
-            --boss-color: #ff7b72; /* Red */
-            --kw-color: #79c0ff;   /* Blue */
-            --str-color: #a5d6ff;  /* Light Blue */
-            --num-color: #d2a8ff;  /* Purple */
-            --com-color: #8b949e;  /* Grey */
-            
-            --terminal-bg: #000000;
-            --terminal-text: #0aff0a;
-            --token-bg: #21262d;
-            --success-btn: #238636;
-            --success-hover: #2ea043;
-        }
+      /* --- 1. THEME VARIABLES --- */
+      :root {
+        --bg-color: #0d1117;
+        --panel-bg: #161b22;
+        --border-color: #30363d;
+        --accent-color: #58a6ff;
 
-        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--border-color) var(--bg-color); }
+        /* Syntax Colors */
+        --boss-color: #ff7b72; /* Red */
+        --kw-color: #79c0ff; /* Blue */
+        --str-color: #a5d6ff; /* Light Blue */
+        --num-color: #d2a8ff; /* Purple */
+        --com-color: #8b949e; /* Grey */
 
+        --terminal-bg: #000000;
+        --terminal-text: #0aff0a;
+        --token-bg: #21262d;
+        --success-btn: #238636;
+        --success-hover: #2ea043;
+      }
+
+      * {
+        box-sizing: border-box;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) var(--bg-color);
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: #c9d1d9;
+        font-family: "Fira Code", monospace;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* --- 2. HEADER --- */
+      header {
+        background: rgba(22, 27, 34, 0.95);
+        border-bottom: 1px solid var(--border-color);
+        padding: 12px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(10px);
+        z-index: 20;
+        flex-shrink: 0;
+      }
+
+      .brand h1 {
+        font-family: "Orbitron", sans-serif;
+        margin: 0;
+        font-size: 1.6rem;
+        background: linear-gradient(135deg, #ff7b72 0%, #58a6ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
+      }
+
+      .nav-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: #e6edf3;
+        padding: 8px 16px;
+        margin-left: 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+      }
+      .nav-btn:hover {
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        background: rgba(88, 166, 255, 0.05);
+      }
+
+      /* --- 3. LAYOUT --- */
+      .main-container {
+        display: grid;
+        grid-template-columns: 1.3fr 0.7fr;
+        gap: 15px;
+        padding: 15px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .panel {
+        background-color: var(--panel-bg);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .panel-header {
+        background-color: #21262d;
+        padding: 10px 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--accent-color);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: "Inter", sans-serif;
+      }
+
+      /* --- 4. EDITOR & TOAST --- */
+      .toast-notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        background: #161b22;
+        border: 1px solid var(--accent-color);
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: none;
+      }
+      .toast-notification.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      .toast-icon {
+        color: var(--success-btn);
+        font-size: 1.2rem;
+      }
+
+      .editor-controls {
+        display: flex;
+        gap: 8px;
+      }
+      .icon-btn {
+        background: #30363d;
+        border: none;
+        color: #c9d1d9;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: 0.2s;
+      }
+      .icon-btn:hover {
+        background: var(--accent-color);
+        color: white;
+      }
+
+      .run-btn {
+        background: linear-gradient(180deg, #2ea043 0%, #238636 100%);
+        color: white;
+        border: 1px solid rgba(240, 246, 252, 0.1);
+        padding: 5px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: "Fira Code", monospace;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .run-btn:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 0 15px rgba(46, 160, 67, 0.4);
+      }
+
+      .demo-bar {
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--border-color);
+        background: #0d1117;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        overflow-x: auto;
+      }
+      .demo-label {
+        font-size: 0.7rem;
+        color: #8b949e;
+        font-weight: bold;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .demo-chip {
+        font-size: 0.75rem;
+        padding: 4px 12px;
+        background: rgba(56, 139, 253, 0.1);
+        border: 1px solid rgba(56, 139, 253, 0.3);
+        border-radius: 20px;
+        cursor: pointer;
+        color: #c9d1d9;
+        white-space: nowrap;
+        transition: 0.2s;
+        font-family: "Inter", sans-serif;
+      }
+      .demo-chip:hover {
+        background: rgba(56, 139, 253, 0.2);
+        color: white;
+        border-color: var(--accent-color);
+      }
+
+      .editor-wrapper {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        background: var(--bg-color);
+      }
+      textarea,
+      pre {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        padding-left: 50px;
+        margin: 0;
+        border: none;
+        background: transparent;
+        font-family: "Fira Code", monospace;
+        font-size: 15px;
+        line-height: 1.6;
+        white-space: pre;
+        overflow: auto;
+        tab-size: 4;
+      }
+      textarea {
+        z-index: 2;
+        color: transparent;
+        caret-color: var(--accent-color);
+        resize: none;
+        outline: none;
+      }
+      pre {
+        z-index: 1;
+        pointer-events: none;
+        color: #e6edf3;
+      }
+
+      /* Syntax Classes */
+      .kw-boss {
+        color: var(--boss-color);
+        font-weight: bold;
+      }
+      .kw-main {
+        color: var(--kw-color);
+        font-weight: bold;
+      }
+      .kw-str {
+        color: var(--str-color);
+      }
+      .kw-num {
+        color: var(--num-color);
+      }
+      .kw-com {
+        color: var(--com-color);
+        font-style: italic;
+      }
+
+      .line-numbers {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 100%;
+        background: var(--panel-bg);
+        border-right: 1px solid var(--border-color);
+        color: #6e7681;
+        text-align: right;
+        padding: 20px 8px;
+        font-size: 13px;
+        line-height: 1.6;
+        user-select: none;
+        z-index: 3;
+      }
+
+      /* --- 5. OUTPUT SECTION --- */
+      .output-column {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        min-height: 0;
+      }
+      .visualizer-panel {
+        flex: 1;
+        min-height: 0;
+      }
+      .terminal-panel {
+        flex: 0.8;
+        min-height: 0;
+        border: 1px solid #333;
+      }
+
+      .token-area {
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-content: flex-start;
+        flex: 1;
+        background-color: var(--panel-bg);
+        background-image: radial-gradient(#30363d 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .token {
+        padding: 8px 14px;
+        border-radius: 8px;
+        background-color: #21262d;
+        border: 1px solid var(--border-color);
+        font-size: 12px;
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        opacity: 0;
+        transform: scale(0.5);
+        text-align: center;
+        min-width: 60px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .token strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 3px;
+        color: #fff;
+        font-weight: 600;
+      }
+      .token span {
+        font-size: 9px;
+        opacity: 0.7;
+        text-transform: uppercase;
+        font-family: "Inter", sans-serif;
+      }
+
+      .tok-boss {
+        border-color: var(--boss-color);
+        color: var(--boss-color);
+        background: rgba(255, 123, 114, 0.1);
+      }
+      .tok-kw {
+        border-color: var(--kw-color);
+        color: var(--kw-color);
+        background: rgba(121, 192, 255, 0.1);
+      }
+      .tok-str {
+        border-color: var(--str-color);
+        color: var(--str-color);
+      }
+      .tok-num {
+        border-color: var(--num-color);
+        color: var(--num-color);
+      }
+      .tok-op {
+        border-color: #e3b341;
+        color: #e3b341;
+      }
+
+      .terminal-screen {
+        background-color: black;
+        color: var(--terminal-text);
+        padding: 20px;
+        flex: 1;
+        font-family: "Courier New", monospace;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .cursor {
+        display: inline-block;
+        width: 10px;
+        height: 18px;
+        background: var(--terminal-text);
+        animation: blink 1s infinite;
+        vertical-align: middle;
+      }
+
+      /* --- 6. MODALS --- */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(5px);
+        z-index: 100;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .modal-content {
+        background: linear-gradient(145deg, #1c2128 0%, #161b22 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        width: 95%;
+        max-width: 1200px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        animation: slideUp 0.4s ease;
+      }
+      .modal-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(22, 27, 34, 0.5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .modal-header h2 {
+        margin: 0;
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.4rem;
+        color: var(--accent-color);
+      }
+      .close-modal {
+        background: none;
+        border: none;
+        color: #8b949e;
+        font-size: 2rem;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .close-modal:hover {
+        color: var(--boss-color);
+        transform: rotate(90deg);
+      }
+      .modal-body {
+        padding: 30px;
+        overflow-y: auto;
+        color: #c9d1d9;
+        font-family: "Inter", "Hind Siliguri", sans-serif;
+        line-height: 1.8;
+      }
+
+      /* Tutorial Styling */
+      .guide-step {
+        margin-bottom: 40px;
+      }
+      .guide-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--accent-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .guide-badge {
+        background-color: var(--accent-color);
+        color: #0d1117;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        font-family: "Inter", sans-serif;
+      }
+
+      /* Code Window */
+      .code-window {
+        background: #0b0e11;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        width: 100%;
+      }
+      .code-header {
+        background: #21262d;
+        padding: 10px 20px;
+        display: flex;
+        gap: 8px;
+        border-bottom: 1px solid #30363d;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .window-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .dot.red {
+        background: #ff5f56;
+      }
+      .dot.yellow {
+        background: #ffbd2e;
+      }
+      .dot.green {
+        background: #27c93f;
+      }
+
+      .copy-code-btn {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: #8b949e;
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .copy-code-btn:hover {
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        background: rgba(88, 166, 255, 0.1);
+      }
+
+      .code-content {
+        padding: 25px;
+        font-family: "Fira Code", monospace;
+        font-size: 1rem;
+        color: #e6edf3;
+        line-height: 1.8;
+        overflow-x: auto;
+        white-space: pre;
+      }
+
+      /* Docs Styling */
+      .doc-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-size: 0.9rem;
+      }
+      .doc-table th,
+      .doc-table td {
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        text-align: left;
+      }
+      .doc-table th {
+        background: #21262d;
+        color: var(--accent-color);
+      }
+
+      /* Highlight Colors inside Code Window */
+      .hl-boss {
+        color: var(--boss-color);
+        font-weight: bold;
+      }
+      .hl-kw {
+        color: var(--kw-color);
+        font-weight: bold;
+      }
+      .hl-str {
+        color: var(--str-color);
+      }
+      .hl-num {
+        color: var(--num-color);
+      }
+      .hl-com {
+        color: var(--com-color);
+        font-style: italic;
+      }
+
+      /* Mobile Optimization */
+      @media (max-width: 768px) {
         body {
-            background-color: var(--bg-color);
-            color: #c9d1d9;
-            font-family: 'Fira Code', monospace;
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+          height: auto;
+          overflow-y: auto;
         }
-
-        /* --- 2. HEADER --- */
-        header {
-            background: rgba(22, 27, 34, 0.95);
-            border-bottom: 1px solid var(--border-color);
-            padding: 12px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(10px);
-            z-index: 20;
-            flex-shrink: 0;
-        }
-
-        .brand h1 {
-            font-family: 'Orbitron', sans-serif;
-            margin: 0;
-            font-size: 1.6rem;
-            background: linear-gradient(135deg, #ff7b72 0%, #58a6ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
-        }
-
-        .nav-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: #e6edf3;
-            padding: 8px 16px;
-            margin-left: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-        }
-        .nav-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(88, 166, 255, 0.05); }
-
-        /* --- 3. LAYOUT --- */
         .main-container {
-            display: grid;
-            grid-template-columns: 1.3fr 0.7fr;
-            gap: 15px;
-            padding: 15px;
-            flex: 1;
-            min-height: 0;
+          grid-template-columns: 1fr;
+          display: flex;
+          flex-direction: column;
+          padding: 10px;
+          gap: 20px;
         }
-
-        .panel {
-            background-color: var(--panel-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        .editor-wrapper {
+          height: 500px;
         }
-
-        .panel-header {
-            background-color: #21262d;
-            padding: 10px 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--accent-color);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-family: 'Inter', sans-serif;
+        .visualizer-panel {
+          height: 300px;
         }
-
-        /* --- 4. EDITOR & TOAST --- */
-        .toast-notification {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: #161b22; border: 1px solid var(--accent-color); color: #fff;
-            padding: 12px 24px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            display: flex; align-items: center; gap: 10px; pointer-events: none;
+        .terminal-panel {
+          height: 250px;
         }
-        .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .toast-icon { color: var(--success-btn); font-size: 1.2rem; }
-
-        .editor-controls { display: flex; gap: 8px; }
-        .icon-btn {
-            background: #30363d; border: none; color: #c9d1d9; padding: 5px 10px; border-radius: 4px;
-            cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        header {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+          padding-bottom: 15px;
         }
-        .icon-btn:hover { background: var(--accent-color); color: white; }
-
-        .run-btn {
-            background: linear-gradient(180deg, #2ea043 0%, #238636 100%); color: white;
-            border: 1px solid rgba(240,246,252,0.1); padding: 5px 20px; border-radius: 4px;
-            cursor: pointer; font-family: 'Fira Code', monospace; font-weight: 700; font-size: 0.85rem;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .run-btn:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(46, 160, 67, 0.4); }
-
-        .demo-bar {
-            padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: #0d1117;
-            display: flex; gap: 10px; align-items: center; overflow-x: auto;
-        }
-        .demo-label { font-size: 0.7rem; color: #8b949e; font-weight: bold; letter-spacing: 1px; white-space: nowrap;}
-        .demo-chip {
-            font-size: 0.75rem; padding: 4px 12px; background: rgba(56, 139, 253, 0.1);
-            border: 1px solid rgba(56, 139, 253, 0.3); border-radius: 20px; cursor: pointer;
-            color: #c9d1d9; white-space: nowrap; transition: 0.2s; font-family: 'Inter', sans-serif;
-        }
-        .demo-chip:hover { background: rgba(56, 139, 253, 0.2); color: white; border-color: var(--accent-color); }
-
-        .editor-wrapper { position: relative; flex: 1; overflow: hidden; background: var(--bg-color); }
-        textarea, pre {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 20px; padding-left: 50px;
-            margin: 0; border: none; background: transparent; font-family: 'Fira Code', monospace;
-            font-size: 15px; line-height: 1.6; white-space: pre; overflow: auto; tab-size: 4;
-        }
-        textarea { z-index: 2; color: transparent; caret-color: var(--accent-color); resize: none; outline: none; }
-        pre { z-index: 1; pointer-events: none; color: #e6edf3; }
-
-        /* Syntax Classes */
-        .kw-boss { color: var(--boss-color); font-weight: bold; }
-        .kw-main { color: var(--kw-color); font-weight: bold; }
-        .kw-str  { color: var(--str-color); }
-        .kw-num  { color: var(--num-color); }
-        .kw-com  { color: var(--com-color); font-style: italic; }
-
-        .line-numbers {
-            position: absolute; top: 0; left: 0; width: 40px; height: 100%; background: var(--panel-bg);
-            border-right: 1px solid var(--border-color); color: #6e7681; text-align: right;
-            padding: 20px 8px; font-size: 13px; line-height: 1.6; user-select: none; z-index: 3;
-        }
-
-        /* --- 5. OUTPUT SECTION --- */
-        .output-column { display: flex; flex-direction: column; gap: 15px; min-height: 0; }
-        .visualizer-panel { flex: 1; min-height: 0; }
-        .terminal-panel { flex: 0.8; min-height: 0; border: 1px solid #333; }
-
-        .token-area {
-            padding: 20px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 10px;
-            align-content: flex-start; flex: 1; background-color: var(--panel-bg);
-            background-image: radial-gradient(#30363d 1px, transparent 1px); background-size: 20px 20px;
-        }
-        .token {
-            padding: 8px 14px; border-radius: 8px; background-color: #21262d; border: 1px solid var(--border-color);
-            font-size: 12px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            opacity: 0; transform: scale(0.5); text-align: center; min-width: 60px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center;
-        }
-        .token strong { display: block; font-size: 13px; margin-bottom: 3px; color: #fff; font-weight: 600; }
-        .token span { font-size: 9px; opacity: 0.7; text-transform: uppercase; font-family: 'Inter', sans-serif; }
-
-        .tok-boss { border-color: var(--boss-color); color: var(--boss-color); background: rgba(255, 123, 114, 0.1); }
-        .tok-kw   { border-color: var(--kw-color); color: var(--kw-color); background: rgba(121, 192, 255, 0.1); }
-        .tok-str  { border-color: var(--str-color); color: var(--str-color); }
-        .tok-num  { border-color: var(--num-color); color: var(--num-color); }
-        .tok-op   { border-color: #e3b341; color: #e3b341; }
-
-        .terminal-screen {
-            background-color: black; color: var(--terminal-text); padding: 20px; flex: 1;
-            font-family: 'Courier New', monospace; overflow-y: auto; white-space: pre-wrap;
-            font-size: 14px; line-height: 1.5;
-        }
-        .cursor { display: inline-block; width: 10px; height: 18px; background: var(--terminal-text); animation: blink 1s infinite; vertical-align: middle; }
-
-        /* --- 6. MODALS --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100;
-            display: none; justify-content: center; align-items: center; padding: 20px;
+        .nav-btn {
+          width: 100%;
+          justify-content: center;
         }
         .modal-content {
-            background: linear-gradient(145deg, #1c2128 0%, #161b22 100%); border: 1px solid var(--border-color);
-            border-radius: 16px; width: 95%; max-width: 1200px; max-height: 90vh;
-            display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            animation: slideUp 0.4s ease;
+          width: 100%;
+          height: 100%;
+          border-radius: 0;
         }
-        .modal-header {
-            padding: 20px 30px; border-bottom: 1px solid var(--border-color); background: rgba(22, 27, 34, 0.5);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-header h2 { margin: 0; font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--accent-color); }
-        .close-modal { background: none; border: none; color: #8b949e; font-size: 2rem; cursor: pointer; transition:0.2s; }
-        .close-modal:hover { color: var(--boss-color); transform: rotate(90deg); }
-        .modal-body { padding: 30px; overflow-y: auto; color: #c9d1d9; font-family: 'Inter', 'Hind Siliguri', sans-serif; line-height: 1.8; }
-
-        /* Tutorial Styling */
-        .guide-step { margin-bottom: 40px; }
-        .guide-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: var(--accent-color); display: flex; align-items: center; gap: 10px; }
-        .guide-badge { background-color: var(--accent-color); color: #0d1117; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; font-family: 'Inter', sans-serif; }
-        
-        /* Code Window */
-        .code-window {
-            background: #0b0e11; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; margin-top: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%;
-        }
-        .code-header {
-            background: #21262d; padding: 10px 20px; display: flex; gap: 8px; border-bottom: 1px solid #30363d;
-            justify-content: space-between; align-items: center;
-        }
-        .window-dots { display: flex; gap: 6px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
-        
-        .copy-code-btn {
-            background: transparent; border: 1px solid var(--border-color); color: #8b949e;
-            font-size: 0.8rem; padding: 4px 10px; border-radius: 4px; cursor: pointer; transition: 0.2s;
-        }
-        .copy-code-btn:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(88, 166, 255, 0.1); }
-
         .code-content {
-            padding: 25px; font-family: 'Fira Code', monospace; font-size: 1rem; color: #e6edf3;
-            line-height: 1.8; overflow-x: auto; white-space: pre;
+          font-size: 0.85rem;
         }
-        
-        /* Docs Styling */
-        .doc-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-        .doc-table th, .doc-table td { border: 1px solid var(--border-color); padding: 12px; text-align: left; }
-        .doc-table th { background: #21262d; color: var(--accent-color); }
+      }
 
-        /* Highlight Colors inside Code Window */
-        .hl-boss { color: var(--boss-color); font-weight: bold; }
-        .hl-kw { color: var(--kw-color); font-weight: bold; }
-        .hl-str { color: var(--str-color); }
-        .hl-num { color: var(--num-color); }
-        .hl-com { color: var(--com-color); font-style: italic; }
+      footer {
+        text-align: center;
+        padding: 15px;
+        font-size: 0.8rem;
+        color: #6e7681;
+        background: var(--panel-bg);
+        border-top: 1px solid var(--border-color);
+        margin-top: auto;
+      }
 
-        /* Mobile Optimization */
-        @media (max-width: 768px) {
-            body { height: auto; overflow-y: auto; }
-            .main-container { grid-template-columns: 1fr; display: flex; flex-direction: column; padding: 10px; gap: 20px; }
-            .editor-wrapper { height: 500px; }
-            .visualizer-panel { height: 300px; }
-            .terminal-panel { height: 250px; }
-            header { flex-direction: column; gap: 15px; text-align: center; padding-bottom: 15px; }
-            .nav-btn { width: 100%; justify-content: center; }
-            .modal-content { width: 100%; height: 100%; border-radius: 0; }
-            .code-content { font-size: 0.85rem; }
+      @keyframes popIn {
+        to {
+          opacity: 1;
+          transform: scale(1);
         }
-
-        footer { text-align: center; padding: 15px; font-size: 0.8rem; color: #6e7681; background: var(--panel-bg); border-top: 1px solid var(--border-color); margin-top: auto;}
-
-        @keyframes popIn { to { opacity: 1; transform: scale(1); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div id="toast" class="toast-notification">
-        <span class="toast-icon">✔</span>
-        <span id="toast-msg">Operation Successful</span>
+      <span class="toast-icon">✔</span>
+      <span id="toast-msg">Operation Successful</span>
     </div>
 
     <header>
-        <div class="brand">
-            <h1>KhaliError</h1>
-            <span style="font-size: 0.65rem; color: #8b949e; font-family: 'Inter'; letter-spacing: 2px; text-transform: uppercase; display: block;">VISUALIZER IDE ULTIMATE</span>
-        </div>
-        <div>
-            <button class="nav-btn" onclick="openModal('tutorial-modal')">🎓 Tutorial (10+)</button>
-            <button class="nav-btn" onclick="openModal('docs-modal')">📑 Docs</button>
-            <button class="nav-btn" onclick="openModal('dev-modal')">👨‍💻 Dev</button>
-        </div>
+      <div class="brand">
+        <h1>KhaliError</h1>
+        <span
+          style="
+            font-size: 0.65rem;
+            color: #8b949e;
+            font-family: 'Inter';
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            display: block;
+          "
+          >VISUALIZER IDE ULTIMATE</span
+        >
+      </div>
+      <div>
+        <button class="nav-btn" onclick="openModal('tutorial-modal')">
+          🎓 Tutorial (10+)
+        </button>
+        <button class="nav-btn" onclick="openModal('docs-modal')">
+          📑 Docs
+        </button>
+        <button class="nav-btn" onclick="openModal('dev-modal')">👨‍💻 Dev</button>
+      </div>
     </header>
 
     <div class="main-container">
-        
-        <div class="panel editor-panel">
-            <div class="panel-header">
-                <span>source.ke</span>
-                <div class="editor-controls">
-                    <button class="icon-btn" onclick="copyCode()" title="Copy Code">📋 Copy</button>
-                    <button class="icon-btn" onclick="downloadCode()" title="Download">⬇ Save</button>
-                    <button class="run-btn" onclick="compileAndRun()">▶ RUN</button>
-                </div>
-            </div>
-            
-            <div class="demo-bar">
-                <span class="demo-label">LOAD DEMO:</span>
-                <button class="demo-chip" onclick="loadDemo('hello')">Hello World</button>
-                <button class="demo-chip" onclick="loadDemo('vars')">Variables</button>
-                <button class="demo-chip" onclick="loadDemo('loop')">Loops</button>
-                <button class="demo-chip" onclick="loadDemo('logic')">Logic</button>
-                <button class="demo-chip" onclick="loadDemo('list')">Array</button>
-                <button class="demo-chip" onclick="loadDemo('input')">Input</button>
-            </div>
+      <div class="panel editor-panel">
+        <div class="panel-header">
+          <span>source.ke</span>
+          <div class="editor-controls">
+            <button class="icon-btn" onclick="copyCode()" title="Copy Code">
+              📋 Copy
+            </button>
+            <button class="icon-btn" onclick="downloadCode()" title="Download">
+              ⬇ Save
+            </button>
+            <button class="run-btn" onclick="compileAndRun()">▶ RUN</button>
+          </div>
+        </div>
 
-            <div class="editor-wrapper">
-                <div class="line-numbers" id="line-numbers">1</div>
-                <pre id="highlight-layer" aria-hidden="true"></pre>
-                <textarea id="code-input" spellcheck="false" oninput="updateEditor()" onscroll="syncScroll()" onkeydown="handleTab(event)">boss
+        <div class="demo-bar">
+          <span class="demo-label">LOAD DEMO:</span>
+          <button class="demo-chip" onclick="loadDemo('hello')">
+            Hello World
+          </button>
+          <button class="demo-chip" onclick="loadDemo('vars')">
+            Variables
+          </button>
+          <button class="demo-chip" onclick="loadDemo('loop')">Loops</button>
+          <button class="demo-chip" onclick="loadDemo('logic')">Logic</button>
+          <button class="demo-chip" onclick="loadDemo('list')">Array</button>
+          <button class="demo-chip" onclick="loadDemo('input')">Input</button>
+        </div>
+
+        <div class="editor-wrapper">
+          <div class="line-numbers" id="line-numbers">1</div>
+          <pre id="highlight-layer" aria-hidden="true"></pre>
+          <textarea
+            id="code-input"
+            spellcheck="false"
+            oninput="updateEditor()"
+            onscroll="syncScroll()"
+            onkeydown="handleTab(event)"
+          >
+boss
     // KhaliError Ultimate Demo
     dhor tk = 500;
     
@@ -345,353 +757,633 @@
     } nahole {
         dekh "Gorib hoye gelam...";
     }
-khotom</textarea>
-            </div>
+khotom</textarea
+          >
+        </div>
+      </div>
+
+      <div class="output-column">
+        <div class="panel visualizer-panel">
+          <div class="panel-header">TOKEN STREAM (Lexer)</div>
+          <div class="token-area" id="token-output"></div>
         </div>
 
-        <div class="output-column">
-            <div class="panel visualizer-panel">
-                <div class="panel-header">TOKEN STREAM (Lexer)</div>
-                <div class="token-area" id="token-output"></div>
-            </div>
-
-            <div class="panel terminal-panel">
-                <div class="panel-header">
-                    <span>TERMINAL OUTPUT</span>
-                    <span style="font-size:10px; cursor:pointer; color:#ff7b72; font-weight:bold;" onclick="clearTerminal()">CLEAR</span>
-                </div>
-                <div class="terminal-screen" id="terminal-output">
-                    <span class="cursor"></span>
-                </div>
-            </div>
+        <div class="panel terminal-panel">
+          <div class="panel-header">
+            <span>TERMINAL OUTPUT</span>
+            <span
+              style="
+                font-size: 10px;
+                cursor: pointer;
+                color: #ff7b72;
+                font-weight: bold;
+              "
+              onclick="clearTerminal()"
+              >CLEAR</span
+            >
+          </div>
+          <div class="terminal-screen" id="terminal-output">
+            <span class="cursor"></span>
+          </div>
         </div>
+      </div>
     </div>
 
     <footer>
-        &copy; 2025 KhaliError Language Project. Designed & Developed by <strong>Md. Ahsanur Rahaman</strong>.
+      &copy; 2025 KhaliError Language Project. Designed & Developed by
+      <strong>Md. Ahsanur Rahaman</strong>.
     </footer>
 
     <div id="tutorial-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>🎓 KhaliError: 10 Step Guide</h2>
-                <button class="close-modal" onclick="closeModal('tutorial-modal')">×</button>
-            </div>
-            <div class="modal-body">
-                <p style="font-size: 1.1rem; margin-bottom: 30px;">স্বাগতম বস! 👋 <strong>KhaliError</strong> শিখুন ১০টি সহজ ধাপে। প্রতিটি উদাহরণ কপি করে রান করে দেখুন।</p>
-                <div id="tutorial-container"></div>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>🎓 KhaliError: 10 Step Guide</h2>
+          <button class="close-modal" onclick="closeModal('tutorial-modal')">
+            ×
+          </button>
         </div>
+        <div class="modal-body">
+          <p style="font-size: 1.1rem; margin-bottom: 30px">
+            স্বাগতম বস! 👋 <strong>KhaliError</strong> শিখুন ১০টি সহজ ধাপে।
+            প্রতিটি উদাহরণ কপি করে রান করে দেখুন।
+          </p>
+          <div id="tutorial-container"></div>
+        </div>
+      </div>
     </div>
 
     <div id="docs-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 900px;">
-            <div class="modal-header">
-                <h2>📑 Technical Documentation v1.0</h2>
-                <button class="close-modal" onclick="closeModal('docs-modal')">×</button>
-            </div>
-            <div class="modal-body">
-                <h1 style="font-size: 2rem; color: var(--accent-color); border-bottom: 1px solid #333; padding-bottom:10px;">KhaliError Language Specification</h1>
-                <p style="color: #8b949e; margin-bottom: 30px;">Author: Md. Ahsanur Rahaman | Version: 1.0.0 | License: MIT</p>
-
-                <h3 style="color: var(--str-color);">1. Executive Summary</h3>
-                <p><strong>KhaliError</strong> is an esoteric, interpreted programming language designed to demystify Compiler Design concepts. It simulates the three stages of a compiler: <strong>Lexical Analysis</strong>, <strong>Syntax Parsing</strong>, and <strong>Code Generation/Execution</strong>, wrapped in a humorous, localized syntax.</p>
-
-                <h3 style="color: var(--str-color); margin-top: 30px;">2. System Architecture</h3>
-                <p>The KhaliError runtime environment operates in a strictly sequential manner within this web-based IDE. The architecture consists of three distinct modules:</p>
-                <ul style="margin-left: 20px; list-style-type: disc; color: #c9d1d9;">
-                    <li style="margin-bottom: 10px;"><strong>The Lexer (Tokenizer):</strong> Scans raw code and generates tokens.</li>
-                    <li style="margin-bottom: 10px;"><strong>The Parser (Syntax Analyzer):</strong> Validates the structure (brackets, keywords).</li>
-                    <li style="margin-bottom: 10px;"><strong>The Interpreter:</strong> Executes the logic and manages memory (Symbol Table).</li>
-                </ul>
-
-                <h3 style="color: var(--str-color); margin-top: 30px;">3. Lexical Grammar Specification</h3>
-                <table class="doc-table">
-                    <tr><th>Token ID</th><th>Keyword</th><th>Description</th></tr>
-                    <tr><td class="hl-boss">TOK_BOSS</td><td>boss</td><td>Defines the entry point of the execution context.</td></tr>
-                    <tr><td class="hl-boss">TOK_KHOTOM</td><td>khotom</td><td>Defines the termination point.</td></tr>
-                    <tr><td class="hl-kw">TOK_DHOR</td><td>dhor</td><td>Variable declaration keyword.</td></tr>
-                    <tr><td class="hl-kw">TOK_DEKH</td><td>dekh</td><td>Standard Output command.</td></tr>
-                    <tr><td class="hl-kw">TOK_CHOL</td><td>chol</td><td>Iteration control structure (For Loop).</td></tr>
-                    <tr><td class="hl-kw">TOK_JOTOKHON</td><td>jotokhon</td><td>While Loop structure.</td></tr>
-                    <tr><td class="hl-kw">TOK_JODI</td><td>jodi</td><td>Conditional branching (If).</td></tr>
-                    <tr><td class="hl-kw">TOK_NAHOLE</td><td>nahole</td><td>Fallback conditional branching (Else).</td></tr>
-                    <tr><td class="hl-kw">TOK_BASTA</td><td>basta</td><td>Data Structure definition for Arrays.</td></tr>
-                    <tr><td class="hl-kw">TOK_PORO</td><td>poro</td><td>Standard Input command.</td></tr>
-                </table>
-
-                <h3 style="color: var(--str-color); margin-top: 30px;">4. Syntax & Semantics</h3>
-                <h4 style="color: var(--accent-color);">4.1 Variable Scope & Memory</h4>
-                <p>Variables in KhaliError are globally scoped. A variable declared with <code>dhor</code> can hold integers, floating-point numbers, or string literals.</p>
-
-                <h4 style="color: var(--accent-color);">4.2 Control Flow</h4>
-                <p><strong>Loops:</strong> The <code>chol</code> loop mirrors the C <code>for</code> loop. <code>jotokhon</code> mirrors the <code>while</code> loop.</p>
-
-                <h3 style="color: var(--str-color); margin-top: 30px;">5. Error Handling</h3>
-                <ul style="color: #ff7b72; list-style: square; margin-left: 20px;">
-                    <li><strong>SyntaxError:</strong> Missing 'boss' or 'khotom'.</li>
-                    <li><strong>ReferenceError:</strong> Accessing undeclared variables.</li>
-                </ul>
-            </div>
+      <div class="modal-content" style="max-width: 900px">
+        <div class="modal-header">
+          <h2>📑 Technical Documentation v1.0</h2>
+          <button class="close-modal" onclick="closeModal('docs-modal')">
+            ×
+          </button>
         </div>
+        <div class="modal-body">
+          <h1
+            style="
+              font-size: 2rem;
+              color: var(--accent-color);
+              border-bottom: 1px solid #333;
+              padding-bottom: 10px;
+            "
+          >
+            KhaliError Language Specification
+          </h1>
+          <p style="color: #8b949e; margin-bottom: 30px">
+            Author: Md. Ahsanur Rahaman | Version: 1.0.0 | License: MIT
+          </p>
+
+          <h3 style="color: var(--str-color)">1. Executive Summary</h3>
+          <p>
+            <strong>KhaliError</strong> is an esoteric, interpreted programming
+            language designed to demystify Compiler Design concepts. It
+            simulates the three stages of a compiler:
+            <strong>Lexical Analysis</strong>, <strong>Syntax Parsing</strong>,
+            and <strong>Code Generation/Execution</strong>, wrapped in a
+            humorous, localized syntax.
+          </p>
+
+          <h3 style="color: var(--str-color); margin-top: 30px">
+            2. System Architecture
+          </h3>
+          <p>
+            The KhaliError runtime environment operates in a strictly sequential
+            manner within this web-based IDE. The architecture consists of three
+            distinct modules:
+          </p>
+          <ul style="margin-left: 20px; list-style-type: disc; color: #c9d1d9">
+            <li style="margin-bottom: 10px">
+              <strong>The Lexer (Tokenizer):</strong> Scans raw code and
+              generates tokens.
+            </li>
+            <li style="margin-bottom: 10px">
+              <strong>The Parser (Syntax Analyzer):</strong> Validates the
+              structure (brackets, keywords).
+            </li>
+            <li style="margin-bottom: 10px">
+              <strong>The Interpreter:</strong> Executes the logic and manages
+              memory (Symbol Table).
+            </li>
+          </ul>
+
+          <h3 style="color: var(--str-color); margin-top: 30px">
+            3. Lexical Grammar Specification
+          </h3>
+          <table class="doc-table">
+            <tr>
+              <th>Token ID</th>
+              <th>Keyword</th>
+              <th>Description</th>
+            </tr>
+            <tr>
+              <td class="hl-boss">TOK_BOSS</td>
+              <td>boss</td>
+              <td>Defines the entry point of the execution context.</td>
+            </tr>
+            <tr>
+              <td class="hl-boss">TOK_KHOTOM</td>
+              <td>khotom</td>
+              <td>Defines the termination point.</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_DHOR</td>
+              <td>dhor</td>
+              <td>Variable declaration keyword.</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_DEKH</td>
+              <td>dekh</td>
+              <td>Standard Output command.</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_CHOL</td>
+              <td>chol</td>
+              <td>Iteration control structure (For Loop).</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_JOTOKHON</td>
+              <td>jotokhon</td>
+              <td>While Loop structure.</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_JODI</td>
+              <td>jodi</td>
+              <td>Conditional branching (If).</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_NAHOLE</td>
+              <td>nahole</td>
+              <td>Fallback conditional branching (Else).</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_BASTA</td>
+              <td>basta</td>
+              <td>Data Structure definition for Arrays.</td>
+            </tr>
+            <tr>
+              <td class="hl-kw">TOK_PORO</td>
+              <td>poro</td>
+              <td>Standard Input command.</td>
+            </tr>
+          </table>
+
+          <h3 style="color: var(--str-color); margin-top: 30px">
+            4. Syntax & Semantics
+          </h3>
+          <h4 style="color: var(--accent-color)">
+            4.1 Variable Scope & Memory
+          </h4>
+          <p>
+            Variables in KhaliError are globally scoped. A variable declared
+            with <code>dhor</code> can hold integers, floating-point numbers, or
+            string literals.
+          </p>
+
+          <h4 style="color: var(--accent-color)">4.2 Control Flow</h4>
+          <p>
+            <strong>Loops:</strong> The <code>chol</code> loop mirrors the C
+            <code>for</code> loop. <code>jotokhon</code> mirrors the
+            <code>while</code> loop.
+          </p>
+
+          <h3 style="color: var(--str-color); margin-top: 30px">
+            5. Error Handling
+          </h3>
+          <ul style="color: #ff7b72; list-style: square; margin-left: 20px">
+            <li><strong>SyntaxError:</strong> Missing 'boss' or 'khotom'.</li>
+            <li>
+              <strong>ReferenceError:</strong> Accessing undeclared variables.
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div id="dev-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 450px;">
-            <div class="modal-header">
-                <h2>👨‍💻 Developer Profile</h2>
-                <button class="close-modal" onclick="closeModal('dev-modal')">×</button>
-            </div>
-            <div class="modal-body" style="text-align: center;">
-                
-                <div style="width: 110px; height: 110px; border-radius: 50%; background: #21262d; border: 3px solid var(--accent-color); margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; font-size: 3rem; box-shadow: 0 0 20px rgba(88,166,255,0.2); overflow: hidden;">
-                    <img src="developer.jpg" alt="Admin" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-
-                <h3 style="margin:0; font-size: 1.6rem; color: white;">Md. Ahsanur Rahaman</h3>
-                <p style="color: var(--accent-color); margin-top: 5px; font-weight: 600; font-size: 0.9rem;">Compiler Engineer & AI/ML Enthusiastic</p>
-                
-                <div style="text-align: left; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 8px; margin-top: 25px; font-size: 0.9rem; border: 1px solid var(--border-color);">
-                    [cite_start]<p style="margin-bottom: 10px;">👋 <strong>Bio:</strong><br>Passionate about making computer science concepts accessible through interactive tools[cite: 20].</p>
-                    <p style="margin-bottom: 10px;">🛠 <strong>Stack:</strong><br>C++, HTML, CSS, JS, WebAssembly, System Design.</p>
-                    <p>📍 <strong>Location:</strong> Joypurhat, Bangladesh</p>
-                </div>
-                
-                <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: center;">
-                    <button class="nav-btn" onclick="window.open('https://github.com/ahsanur-official/', '_blank')">GitHub</button>
-                    <button class="nav-btn" onclick="window.open('https://www.linkedin.com/in/md-ahsanur-rahaman/', '_blank')">LinkedIn</button>
-                </div>
-            </div>
+      <div class="modal-content" style="max-width: 450px">
+        <div class="modal-header">
+          <h2>👨‍💻 Developer Profile</h2>
+          <button class="close-modal" onclick="closeModal('dev-modal')">
+            ×
+          </button>
         </div>
+        <div class="modal-body" style="text-align: center">
+          <div
+            style="
+              width: 110px;
+              height: 110px;
+              border-radius: 50%;
+              background: #21262d;
+              border: 3px solid var(--accent-color);
+              margin: 0 auto 20px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              font-size: 3rem;
+              box-shadow: 0 0 20px rgba(88, 166, 255, 0.2);
+              overflow: hidden;
+            "
+          >
+            <img
+              src="developer.jpg"
+              alt="Admin"
+              style="width: 100%; height: 100%; object-fit: cover"
+            />
+          </div>
+
+          <h3 style="margin: 0; font-size: 1.6rem; color: white">
+            Md. Ahsanur Rahaman
+          </h3>
+          <p
+            style="
+              color: var(--accent-color);
+              margin-top: 5px;
+              font-weight: 600;
+              font-size: 0.9rem;
+            "
+          >
+            Compiler Engineer & AI/ML Enthusiastic
+          </p>
+
+          <div
+            style="
+              text-align: left;
+              background: rgba(255, 255, 255, 0.03);
+              padding: 20px;
+              border-radius: 8px;
+              margin-top: 25px;
+              font-size: 0.9rem;
+              border: 1px solid var(--border-color);
+            "
+          >
+            <p style="margin-bottom: 10px">
+              👋 <strong>Bio:</strong><br />Passionate about making computer
+              science concepts accessible through interactive tools[cite: 20].
+            </p>
+            <p style="margin-bottom: 10px">
+              🛠 <strong>Stack:</strong><br />C++, HTML, CSS, JS, WebAssembly,
+              System Design.
+            </p>
+            <p>📍 <strong>Location:</strong> Joypurhat, Bangladesh</p>
+          </div>
+
+          <div
+            style="
+              margin-top: 25px;
+              display: flex;
+              gap: 10px;
+              justify-content: center;
+            "
+          >
+            <button
+              class="nav-btn"
+              onclick="window.open('https://github.com/ahsanur-official/', '_blank')"
+            >
+              GitHub
+            </button>
+            <button
+              class="nav-btn"
+              onclick="window.open('https://www.linkedin.com/in/md-ahsanur-rahaman/', '_blank')"
+            >
+              LinkedIn
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        // --- UTILS (Toast & Copy) ---
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toast-msg');
-            msg.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
+      // --- UTILS (Toast & Copy) ---
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        const msg = document.getElementById("toast-msg");
+        msg.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      }
 
-        function copyCode() {
-            navigator.clipboard.writeText(codeInput.value);
-            showToast("Code copied to clipboard!");
-        }
+      function copyCode() {
+        navigator.clipboard.writeText(codeInput.value);
+        showToast("Code copied to clipboard!");
+      }
 
-        function copyTutCode(code) {
-            const decoded = decodeURIComponent(code);
-            navigator.clipboard.writeText(decoded);
-            showToast("Tutorial code copied! Pasting...");
-            closeModal('tutorial-modal');
-            document.getElementById('code-input').value = decoded;
-            updateEditor();
-        }
+      function copyTutCode(code) {
+        const decoded = decodeURIComponent(code);
+        navigator.clipboard.writeText(decoded);
+        showToast("Tutorial code copied! Pasting...");
+        closeModal("tutorial-modal");
+        document.getElementById("code-input").value = decoded;
+        updateEditor();
+      }
 
-        function downloadCode() {
-            const blob = new Blob([codeInput.value], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = "source.ke"; a.click();
-        }
+      function downloadCode() {
+        const blob = new Blob([codeInput.value], { type: "text/plain" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "source.ke";
+        a.click();
+      }
 
-        // --- TUTORIAL DATA ---
-        const tutorials = [
-            { title: "1. Hello World", desc: "প্রোগ্রামিং জগতের প্রথম ধাপ। স্ক্রিনে কিছু প্রিন্ট করা।", code: `boss\n    dekh "Salam Boss! Kemon acho?";\nkhotom` },
-            { title: "2. Variables (Taka Poisha)", desc: "ভ্যারিয়েবল ডিক্লেয়ার করতে dhor ব্যবহার করা হয়।", code: `boss\n    dhor taka = 100;\n    dhor khoroch = 20;\n    dekh "Baki ache: ";\n    dekh taka - khoroch;\nkhotom` },
-            { title: "3. String Joining", desc: "দুইটা লেখা বা লেখা ও নাম্বার জোড়া লাগানো।", code: `boss\n    dhor nam = "Rahim";\n    dhor age = 25;\n    dekh nam + " er boyosh " + age;\nkhotom` },
-            { title: "4. Conditional Logic", desc: "সিদ্ধান্ত নেওয়া - যদি সত্য হয় তবে এটা করো, নাহলে ওটা।", code: `boss\n    dhor mark = 80;\n    jodi (mark >= 33) {\n        dekh "Pass korechos mama!";\n    } nahole {\n        dekh "Fail... porashona koro.";\n    }\nkhotom` },
-            { title: "5. Namta (Multiplication)", desc: "লুপ ব্যবহার করে ৫ এর নামতা প্রিন্ট করা।", code: `boss\n    chol(dhor i=1; i<=10; i=i+1) {\n        dhor gun = 5 * i;\n        dekh "5 x " + i + " = " + gun;\n        dekh "\\n";\n    }\nkhotom` },
-            { title: "6. While Loop (Jotokhon)", desc: "যতক্ষণ শর্ত সত্য থাকবে, লুপ চলবে।", code: `boss\n    dhor battery = 5;\n    jotokhon (battery > 0) {\n        dekh "Charging: " + battery + "%\\n";\n        battery = battery - 1;\n    }\n    dekh "Phone Dead!";\nkhotom` },
-            { title: "7. Array (Basta)", desc: "লিস্ট বা অ্যারে তৈরি এবং এক্সেস করা।", code: `boss\n    basta fol = {"Aam", "Jaam", "Kola"};\n    dekh "Amar priyo fol: " + fol[0];\nkhotom` },
-            { title: "8. Even/Odd Checker", desc: "সংখ্যাটি জোড় না বিজোড় তা বের করা।", code: `boss\n    dhor num = 9;\n    jodi (num % 2 == 0) {\n        dekh "Jor Sonkha";\n    } nahole {\n        dekh "Bijor Sonkha";\n    }\nkhotom` },
-            { title: "9. Nested Loop", desc: "লুপের ভেতর লুপ (Pattern Printing)।", code: `boss\n    chol(dhor i=1; i<=3; i=i+1) {\n        chol(dhor j=1; j<=i; j=j+1) {\n            dekh "*";\n        }\n        dekh "\\n";\n    }\nkhotom` },
-            { title: "10. User Input", desc: "ইউজারের থেকে ডাটা নেওয়া।", code: `boss\n    dhor nam = poro("Tomar nam ki?");\n    dekh "Swagotom " + nam;\nkhotom` }
-        ];
+      // --- TUTORIAL DATA ---
+      const tutorials = [
+        {
+          title: "1. Hello World",
+          desc: "প্রোগ্রামিং জগতের প্রথম ধাপ। স্ক্রিনে কিছু প্রিন্ট করা।",
+          code: `boss\n    dekh "Salam Boss! Kemon acho?";\nkhotom`,
+        },
+        {
+          title: "2. Variables (Taka Poisha)",
+          desc: "ভ্যারিয়েবল ডিক্লেয়ার করতে dhor ব্যবহার করা হয়।",
+          code: `boss\n    dhor taka = 100;\n    dhor khoroch = 20;\n    dekh "Baki ache: ";\n    dekh taka - khoroch;\nkhotom`,
+        },
+        {
+          title: "3. String Joining",
+          desc: "দুইটা লেখা বা লেখা ও নাম্বার জোড়া লাগানো।",
+          code: `boss\n    dhor nam = "Rahim";\n    dhor age = 25;\n    dekh nam + " er boyosh " + age;\nkhotom`,
+        },
+        {
+          title: "4. Conditional Logic",
+          desc: "সিদ্ধান্ত নেওয়া - যদি সত্য হয় তবে এটা করো, নাহলে ওটা।",
+          code: `boss\n    dhor mark = 80;\n    jodi (mark >= 33) {\n        dekh "Pass korechos mama!";\n    } nahole {\n        dekh "Fail... porashona koro.";\n    }\nkhotom`,
+        },
+        {
+          title: "5. Namta (Multiplication)",
+          desc: "লুপ ব্যবহার করে ৫ এর নামতা প্রিন্ট করা।",
+          code: `boss\n    chol(dhor i=1; i<=10; i=i+1) {\n        dhor gun = 5 * i;\n        dekh "5 x " + i + " = " + gun;\n        dekh "\\n";\n    }\nkhotom`,
+        },
+        {
+          title: "6. While Loop (Jotokhon)",
+          desc: "যতক্ষণ শর্ত সত্য থাকবে, লুপ চলবে।",
+          code: `boss\n    dhor battery = 5;\n    jotokhon (battery > 0) {\n        dekh "Charging: " + battery + "%\\n";\n        battery = battery - 1;\n    }\n    dekh "Phone Dead!";\nkhotom`,
+        },
+        {
+          title: "7. Array (Basta)",
+          desc: "লিস্ট বা অ্যারে তৈরি এবং এক্সেস করা।",
+          code: `boss\n    basta fol = {"Aam", "Jaam", "Kola"};\n    dekh "Amar priyo fol: " + fol[0];\nkhotom`,
+        },
+        {
+          title: "8. Even/Odd Checker",
+          desc: "সংখ্যাটি জোড় না বিজোড় তা বের করা।",
+          code: `boss\n    dhor num = 9;\n    jodi (num % 2 == 0) {\n        dekh "Jor Sonkha";\n    } nahole {\n        dekh "Bijor Sonkha";\n    }\nkhotom`,
+        },
+        {
+          title: "9. Nested Loop",
+          desc: "লুপের ভেতর লুপ (Pattern Printing)।",
+          code: `boss\n    chol(dhor i=1; i<=3; i=i+1) {\n        chol(dhor j=1; j<=i; j=j+1) {\n            dekh "*";\n        }\n        dekh "\\n";\n    }\nkhotom`,
+        },
+        {
+          title: "10. User Input",
+          desc: "ইউজারের থেকে ডাটা নেওয়া।",
+          code: `boss\n    dhor nam = poro("Tomar nam ki?");\n    dekh "Swagotom " + nam;\nkhotom`,
+        },
+      ];
 
-        const tutContainer = document.getElementById('tutorial-container');
-        tutorials.forEach((tut, index) => {
-            // Highlighting
-            let safeCode = tut.code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            let highlightedCode = safeCode
-                .replace(/("[^"]*")/g, '<span class="hl-str">$1</span>')
-                .replace(/\b(boss|khotom)\b/g, '<span class="hl-boss">$1</span>')
-                .replace(/\b(dhor|dekh|chol|jodi|nahole|jotokhon|basta|poro)\b/g, '<span class="hl-kw">$1</span>')
-                .replace(/\b(\d+)\b/g, '<span class="hl-num">$1</span>');
+      const tutContainer = document.getElementById("tutorial-container");
+      tutorials.forEach((tut, index) => {
+        // Highlighting
+        let safeCode = tut.code
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        let highlightedCode = safeCode
+          .replace(/("[^"]*")/g, '<span class="hl-str">$1</span>')
+          .replace(/\b(boss|khotom)\b/g, '<span class="hl-boss">$1</span>')
+          .replace(
+            /\b(dhor|dekh|chol|jodi|nahole|jotokhon|basta|poro)\b/g,
+            '<span class="hl-kw">$1</span>'
+          )
+          .replace(/\b(\d+)\b/g, '<span class="hl-num">$1</span>');
 
-            let html = `
+        let html = `
             <div class="guide-step">
-                <div class="guide-title"><span class="guide-badge">STEP ${index + 1}</span> ${tut.title}</div>
+                <div class="guide-title"><span class="guide-badge">STEP ${
+                  index + 1
+                }</span> ${tut.title}</div>
                 <p style="color:#c9d1d9; margin-bottom:10px;">${tut.desc}</p>
                 <div class="code-window">
                     <div class="code-header">
                         <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                        <button class="copy-code-btn" onclick="copyTutCode('${encodeURIComponent(tut.code)}')">📋 Copy Code</button>
+                        <button class="copy-code-btn" onclick="copyTutCode('${encodeURIComponent(
+                          tut.code
+                        )}')">📋 Copy Code</button>
                     </div>
                     <div class="code-content">${highlightedCode}</div>
                 </div>
             </div>`;
-            tutContainer.innerHTML += html;
+        tutContainer.innerHTML += html;
+      });
+
+      // --- EDITOR LOGIC ---
+      const codeInput = document.getElementById("code-input");
+      const highlightLayer = document.getElementById("highlight-layer");
+      const lineNumbers = document.getElementById("line-numbers");
+
+      function updateEditor() {
+        let text = codeInput.value;
+        const lines = text.split("\n").length;
+        lineNumbers.innerHTML = Array(lines)
+          .fill(0)
+          .map((_, i) => i + 1)
+          .join("<br>");
+
+        text = text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        text = text.replace(/(".*?")/g, '<span class="kw-str">$1</span>');
+        text = text.replace(
+          /\b(boss|khotom)\b/g,
+          '<span class="kw-boss">$1</span>'
+        );
+        text = text.replace(
+          /\b(dhor|dekh|jodi|nahole|chol|basta|poro|jotokhon)\b/g,
+          '<span class="kw-main">$1</span>'
+        );
+        text = text.replace(/\b(\d+)\b/g, '<span class="kw-num">$1</span>');
+        text = text.replace(/(\/\/.*)/g, '<span class="kw-com">$1</span>');
+
+        highlightLayer.innerHTML = text + "<br>";
+      }
+
+      function syncScroll() {
+        highlightLayer.scrollTop = codeInput.scrollTop;
+        highlightLayer.scrollLeft = codeInput.scrollLeft;
+        lineNumbers.scrollTop = codeInput.scrollTop;
+      }
+
+      function handleTab(e) {
+        if (e.key == "Tab") {
+          e.preventDefault();
+          const start = codeInput.selectionStart;
+          const end = codeInput.selectionEnd;
+          codeInput.value =
+            codeInput.value.substring(0, start) +
+            "    " +
+            codeInput.value.substring(end);
+          codeInput.selectionStart = codeInput.selectionEnd = start + 4;
+          updateEditor();
+        }
+      }
+
+      updateEditor();
+
+      // --- DEMO LOADER ---
+      function loadDemo(type) {
+        // Map demos to tutorials code for consistency or define separate demo set
+        const demoMap = {
+          hello: tutorials[0].code,
+          vars: tutorials[1].code,
+          loop: tutorials[4].code,
+          logic: tutorials[3].code,
+          list: tutorials[6].code,
+          input: tutorials[9].code,
+        };
+        codeInput.value = demoMap[type];
+        updateEditor();
+        showToast("Demo code loaded!");
+      }
+
+      // --- COMPILER LOGIC ---
+      const TOKEN_MAP = {
+        boss: "tok-boss",
+        khotom: "tok-boss",
+        dhor: "tok-kw",
+        dekh: "tok-kw",
+        jodi: "tok-kw",
+        nahole: "tok-kw",
+        chol: "tok-kw",
+        jotokhon: "tok-kw",
+        basta: "tok-kw",
+        poro: "tok-kw",
+      };
+
+      function compileAndRun() {
+        const code = codeInput.value;
+        const tokenArea = document.getElementById("token-output");
+        const terminal = document.getElementById("terminal-output");
+
+        tokenArea.innerHTML = "";
+        terminal.innerHTML = '<span class="cursor"></span>';
+
+        const tokens = tokenize(code);
+
+        tokens.forEach((token, index) => {
+          setTimeout(() => {
+            const div = document.createElement("div");
+            div.className = `token ${token.class}`;
+            div.innerHTML = `<strong>${token.value}</strong><span>${token.type}</span>`;
+            tokenArea.appendChild(div);
+          }, index * 50);
         });
 
-        // --- EDITOR LOGIC ---
-        const codeInput = document.getElementById('code-input');
-        const highlightLayer = document.getElementById('highlight-layer');
-        const lineNumbers = document.getElementById('line-numbers');
+        setTimeout(
+          () => runInterpreter(tokens, terminal),
+          tokens.length * 50 + 500
+        );
+      }
 
-        function updateEditor() {
-            let text = codeInput.value;
-            const lines = text.split('\n').length;
-            lineNumbers.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
-
-            text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            text = text.replace(/(".*?")/g, '<span class="kw-str">$1</span>');
-            text = text.replace(/\b(boss|khotom)\b/g, '<span class="kw-boss">$1</span>');
-            text = text.replace(/\b(dhor|dekh|jodi|nahole|chol|basta|poro|jotokhon)\b/g, '<span class="kw-main">$1</span>');
-            text = text.replace(/\b(\d+)\b/g, '<span class="kw-num">$1</span>');
-            text = text.replace(/(\/\/.*)/g, '<span class="kw-com">$1</span>');
-
-            highlightLayer.innerHTML = text + '<br>';
-        }
-
-        function syncScroll() {
-            highlightLayer.scrollTop = codeInput.scrollTop;
-            highlightLayer.scrollLeft = codeInput.scrollLeft;
-            lineNumbers.scrollTop = codeInput.scrollTop;
-        }
-
-        function handleTab(e) {
-            if (e.key == 'Tab') {
-                e.preventDefault();
-                const start = codeInput.selectionStart;
-                const end = codeInput.selectionEnd;
-                codeInput.value = codeInput.value.substring(0, start) + "    " + codeInput.value.substring(end);
-                codeInput.selectionStart = codeInput.selectionEnd = start + 4;
-                updateEditor();
-            }
-        }
-
-        updateEditor();
-
-        // --- DEMO LOADER ---
-        function loadDemo(type) {
-            // Map demos to tutorials code for consistency or define separate demo set
-            const demoMap = {
-                'hello': tutorials[0].code,
-                'vars': tutorials[1].code,
-                'loop': tutorials[4].code,
-                'logic': tutorials[3].code,
-                'list': tutorials[6].code,
-                'input': tutorials[9].code
-            };
-            codeInput.value = demoMap[type];
-            updateEditor();
-            showToast("Demo code loaded!");
-        }
-
-        // --- COMPILER LOGIC ---
-        const TOKEN_MAP = {
-            'boss': 'tok-boss', 'khotom': 'tok-boss',
-            'dhor': 'tok-kw', 'dekh': 'tok-kw', 'jodi': 'tok-kw', 'nahole': 'tok-kw', 
-            'chol': 'tok-kw', 'jotokhon': 'tok-kw', 'basta': 'tok-kw', 'poro': 'tok-kw'
-        };
-
-        function compileAndRun() {
-            const code = codeInput.value;
-            const tokenArea = document.getElementById('token-output');
-            const terminal = document.getElementById('terminal-output');
-
-            tokenArea.innerHTML = '';
-            terminal.innerHTML = '<span class="cursor"></span>';
-
-            const tokens = tokenize(code);
-            
-            tokens.forEach((token, index) => {
-                setTimeout(() => {
-                    const div = document.createElement('div');
-                    div.className = `token ${token.class}`;
-                    div.innerHTML = `<strong>${token.value}</strong><span>${token.type}</span>`;
-                    tokenArea.appendChild(div);
-                }, index * 50);
+      function tokenize(src) {
+        const tokens = [];
+        let cursor = 0;
+        while (cursor < src.length) {
+          let char = src[cursor];
+          if (/\s/.test(char)) {
+            cursor++;
+            continue;
+          }
+          if (char === '"') {
+            let val = "";
+            cursor++;
+            while (cursor < src.length && src[cursor] !== '"')
+              val += src[cursor++];
+            cursor++;
+            tokens.push({
+              type: "STRING",
+              value: `"${val}"`,
+              class: "tok-str",
             });
+            continue;
+          }
+          if (/[0-9]/.test(char)) {
+            let val = "";
+            while (cursor < src.length && /[0-9.]/.test(src[cursor]))
+              val += src[cursor++];
+            tokens.push({ type: "NUMBER", value: val, class: "tok-num" });
+            continue;
+          }
+          if (/[a-zA-Z_]/.test(char)) {
+            let val = "";
+            while (cursor < src.length && /[a-zA-Z0-9_]/.test(src[cursor]))
+              val += src[cursor++];
+            let cssClass = TOKEN_MAP[val] || "tok-op";
+            tokens.push({
+              type: TOKEN_MAP[val] ? "KEYWORD" : "IDENT",
+              value: val,
+              class: cssClass,
+            });
+            continue;
+          }
+          if ("+-*/%=<>{}(),;[]".includes(char)) {
+            tokens.push({ type: "SYMBOL", value: char, class: "tok-op" });
+            cursor++;
+            continue;
+          }
+          cursor++;
+        }
+        return tokens;
+      }
 
-            setTimeout(() => runInterpreter(tokens, terminal), tokens.length * 50 + 500);
+      function runInterpreter(tokens, term) {
+        let output = "";
+        let hasBoss = tokens.some((t) => t.value === "boss");
+
+        if (!hasBoss)
+          output = "[Error] 'boss' missing! Start code with 'boss'.\n";
+        else {
+          for (let i = 0; i < tokens.length; i++) {
+            if (tokens[i].value === "dekh" && tokens[i + 1]) {
+              let val = tokens[i + 1].value;
+              if (val.startsWith('"')) val = val.slice(1, -1);
+              if (val === "\\n") val = "\n";
+              output += val;
+            }
+          }
+          if (output === "") output = "\n[Program finished. No output.]";
+          else output += "\n\n[Process completed code 0]";
         }
 
-        function tokenize(src) {
-            const tokens = [];
-            let cursor = 0;
-            while (cursor < src.length) {
-                let char = src[cursor];
-                if (/\s/.test(char)) { cursor++; continue; }
-                if (char === '"') {
-                    let val = ""; cursor++;
-                    while (cursor < src.length && src[cursor] !== '"') val += src[cursor++];
-                    cursor++;
-                    tokens.push({ type: 'STRING', value: `"${val}"`, class: 'tok-str' });
-                    continue;
-                }
-                if (/[0-9]/.test(char)) {
-                    let val = "";
-                    while (cursor < src.length && /[0-9.]/.test(src[cursor])) val += src[cursor++];
-                    tokens.push({ type: 'NUMBER', value: val, class: 'tok-num' });
-                    continue;
-                }
-                if (/[a-zA-Z_]/.test(char)) {
-                    let val = "";
-                    while (cursor < src.length && /[a-zA-Z0-9_]/.test(src[cursor])) val += src[cursor++];
-                    let cssClass = TOKEN_MAP[val] || 'tok-op'; 
-                    tokens.push({ type: TOKEN_MAP[val] ? 'KEYWORD' : 'IDENT', value: val, class: cssClass });
-                    continue;
-                }
-                if ("+-*/%=<>{}(),;[]".includes(char)) {
-                    tokens.push({ type: 'SYMBOL', value: char, class: 'tok-op' });
-                    cursor++; continue;
-                }
-                cursor++;
-            }
-            return tokens;
+        term.innerHTML = "";
+        let i = 0;
+        function type() {
+          if (i < output.length) {
+            term.innerHTML += output.charAt(i);
+            i++;
+            term.scrollTop = term.scrollHeight;
+            setTimeout(type, 15);
+          } else {
+            term.innerHTML += '<span class="cursor"></span>';
+          }
         }
+        type();
+      }
 
-        function runInterpreter(tokens, term) {
-            let output = "";
-            let hasBoss = tokens.some(t => t.value === 'boss');
-            
-            if (!hasBoss) output = "[Error] 'boss' missing! Start code with 'boss'.\n";
-            else {
-                for (let i = 0; i < tokens.length; i++) {
-                    if (tokens[i].value === 'dekh' && tokens[i+1]) {
-                        let val = tokens[i+1].value;
-                        if(val.startsWith('"')) val = val.slice(1,-1);
-                        if (val === '\\n') val = '\n';
-                        output += val;
-                    }
-                }
-                if(output === "") output = "\n[Program finished. No output.]";
-                else output += "\n\n[Process completed code 0]";
-            }
-            
-            term.innerHTML = "";
-            let i = 0;
-            function type() {
-                if (i < output.length) {
-                    term.innerHTML += output.charAt(i);
-                    i++;
-                    term.scrollTop = term.scrollHeight;
-                    setTimeout(type, 15);
-                } else {
-                    term.innerHTML += '<span class="cursor"></span>';
-                }
-            }
-            type();
-        }
-
-        function clearTerminal() { document.getElementById('terminal-output').innerHTML = '<span class="cursor"></span>'; }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        window.onclick = (e) => { if(e.target.className === 'modal-overlay') e.target.style.display = 'none'; }
-
+      function clearTerminal() {
+        document.getElementById("terminal-output").innerHTML =
+          '<span class="cursor"></span>';
+      }
+      function openModal(id) {
+        document.getElementById(id).style.display = "flex";
+      }
+      function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+      }
+      window.onclick = (e) => {
+        if (e.target.className === "modal-overlay")
+          e.target.style.display = "none";
+      };
     </script>
-</body>
+  </body>
 </html>
