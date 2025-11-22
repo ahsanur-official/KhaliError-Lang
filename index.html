@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>KhaliError Visualizer Ultimate</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Orbitron:wght@700&family=Inter:wght@400;600;700&family=Hind+Siliguri:wght@400;600&display=swap"
@@ -18,11 +21,11 @@
         --accent-color: #58a6ff;
 
         /* Syntax Colors */
-        --boss-color: #ff7b72; /* Red */
-        --kw-color: #79c0ff; /* Blue */
-        --str-color: #a5d6ff; /* Light Blue */
-        --num-color: #d2a8ff; /* Purple */
-        --com-color: #8b949e; /* Grey */
+        --boss-color: #ff7b72;
+        --kw-color: #79c0ff;
+        --str-color: #a5d6ff;
+        --num-color: #d2a8ff;
+        --com-color: #8b949e;
 
         --terminal-bg: #000000;
         --terminal-text: #0aff0a;
@@ -35,6 +38,7 @@
         box-sizing: border-box;
         scrollbar-width: thin;
         scrollbar-color: var(--border-color) var(--bg-color);
+        outline: none;
       }
 
       body {
@@ -123,37 +127,7 @@
         font-family: "Inter", sans-serif;
       }
 
-      /* --- 4. EDITOR & TOAST --- */
-      .toast-notification {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%) translateY(-100px);
-        background: #161b22;
-        border: 1px solid var(--accent-color);
-        color: #fff;
-        padding: 12px 24px;
-        border-radius: 8px;
-        font-family: "Inter", sans-serif;
-        font-size: 0.9rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        z-index: 2000;
-        opacity: 0;
-        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        pointer-events: none;
-      }
-      .toast-notification.show {
-        transform: translateX(-50%) translateY(0);
-        opacity: 1;
-      }
-      .toast-icon {
-        color: var(--success-btn);
-        font-size: 1.2rem;
-      }
-
+      /* --- 4. EDITOR & CONTROLS --- */
       .editor-controls {
         display: flex;
         gap: 8px;
@@ -234,6 +208,7 @@
         flex: 1;
         overflow: hidden;
         background: var(--bg-color);
+        cursor: text;
       }
       textarea,
       pre {
@@ -253,6 +228,7 @@
         white-space: pre;
         overflow: auto;
         tab-size: 4;
+        -webkit-overflow-scrolling: touch;
       }
       textarea {
         z-index: 2;
@@ -260,6 +236,7 @@
         caret-color: var(--accent-color);
         resize: none;
         outline: none;
+        opacity: 1;
       }
       pre {
         z-index: 1;
@@ -267,7 +244,6 @@
         color: #e6edf3;
       }
 
-      /* Syntax Classes */
       .kw-boss {
         color: var(--boss-color);
         font-weight: bold;
@@ -406,7 +382,7 @@
         vertical-align: middle;
       }
 
-      /* --- 6. MODALS --- */
+      /* --- 6. MODALS (GENERAL) --- */
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -467,7 +443,95 @@
         line-height: 1.8;
       }
 
-      /* Tutorial Styling */
+      /* --- 7. CUSTOM PROMPT MODAL (PORO) --- */
+      #prompt-modal {
+        z-index: 200;
+      }
+      .prompt-box {
+        background: #161b22;
+        border: 1px solid var(--accent-color);
+        border-radius: 12px;
+        padding: 25px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 0 50px rgba(88, 166, 255, 0.2);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        animation: popIn 0.3s ease;
+      }
+      .prompt-msg {
+        font-family: "Inter", sans-serif;
+        color: white;
+        font-size: 1rem;
+        margin-bottom: 5px;
+      }
+      .prompt-input {
+        background: #0d1117;
+        border: 1px solid #30363d;
+        padding: 12px;
+        color: var(--accent-color);
+        border-radius: 6px;
+        font-family: "Fira Code", monospace;
+        font-size: 1rem;
+        outline: none;
+        transition: 0.2s;
+      }
+      .prompt-input:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 10px rgba(88, 166, 255, 0.1);
+      }
+      .prompt-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 5px;
+      }
+      .btn-submit {
+        background: var(--success-btn);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-submit:hover {
+        background: var(--success-hover);
+      }
+
+      /* Toast */
+      .toast-notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100px);
+        background: #161b22;
+        border: 1px solid var(--accent-color);
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: none;
+      }
+      .toast-notification.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+      .toast-icon {
+        color: var(--success-btn);
+        font-size: 1.2rem;
+      }
+
+      /* Tutorial Elements */
       .guide-step {
         margin-bottom: 40px;
       }
@@ -490,7 +554,6 @@
         font-family: "Inter", sans-serif;
       }
 
-      /* Code Window */
       .code-window {
         background: #0b0e11;
         border: 1px solid #30363d;
@@ -527,7 +590,6 @@
       .dot.green {
         background: #27c93f;
       }
-
       .copy-code-btn {
         background: transparent;
         border: 1px solid var(--border-color);
@@ -543,7 +605,6 @@
         color: var(--accent-color);
         background: rgba(88, 166, 255, 0.1);
       }
-
       .code-content {
         padding: 25px;
         font-family: "Fira Code", monospace;
@@ -554,7 +615,6 @@
         white-space: pre;
       }
 
-      /* Docs Styling */
       .doc-table {
         width: 100%;
         border-collapse: collapse;
@@ -572,7 +632,6 @@
         color: var(--accent-color);
       }
 
-      /* Highlight Colors inside Code Window */
       .hl-boss {
         color: var(--boss-color);
         font-weight: bold;
@@ -592,7 +651,7 @@
         font-style: italic;
       }
 
-      /* Mobile Optimization */
+      /* --- 8. MOBILE OPTIMIZATION --- */
       @media (max-width: 768px) {
         body {
           height: auto;
@@ -604,9 +663,14 @@
           flex-direction: column;
           padding: 10px;
           gap: 20px;
+          height: auto;
+          min-height: auto;
+        }
+        .editor-panel {
+          min-height: 500px;
         }
         .editor-wrapper {
-          height: 500px;
+          height: 450px;
         }
         .visualizer-panel {
           height: 300px;
@@ -628,6 +692,7 @@
           width: 100%;
           height: 100%;
           border-radius: 0;
+          max-height: 100%;
         }
         .code-content {
           font-size: 0.85rem;
@@ -660,21 +725,28 @@
           transform: translateY(0);
         }
       }
-      @keyframes blink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0;
-        }
-      }
     </style>
   </head>
   <body>
     <div id="toast" class="toast-notification">
       <span class="toast-icon">✔</span>
       <span id="toast-msg">Operation Successful</span>
+    </div>
+
+    <div id="prompt-modal" class="modal-overlay">
+      <div class="prompt-box">
+        <div id="prompt-message" class="prompt-msg">Input required:</div>
+        <input
+          type="text"
+          id="prompt-input"
+          class="prompt-input"
+          autocomplete="off"
+          placeholder="Type here boss..."
+        />
+        <div class="prompt-actions">
+          <button class="btn-submit" id="prompt-submit">Submit</button>
+        </div>
+      </div>
     </div>
 
     <header>
@@ -684,17 +756,15 @@
           style="
             font-size: 0.65rem;
             color: #8b949e;
-            font-family: 'Inter';
             letter-spacing: 2px;
-            text-transform: uppercase;
             display: block;
           "
-          >VISUALIZER IDE ULTIMATE</span
+          >ULTIMATE VISUALIZER</span
         >
       </div>
       <div>
         <button class="nav-btn" onclick="openModal('tutorial-modal')">
-          🎓 Tutorial (10+)
+          🎓 Tutorial
         </button>
         <button class="nav-btn" onclick="openModal('docs-modal')">
           📑 Docs
@@ -720,19 +790,22 @@
 
         <div class="demo-bar">
           <span class="demo-label">LOAD DEMO:</span>
-          <button class="demo-chip" onclick="loadDemo('hello')">
-            Hello World
-          </button>
+          <button class="demo-chip" onclick="loadDemo('hello')">Hello</button>
           <button class="demo-chip" onclick="loadDemo('vars')">
             Variables
           </button>
-          <button class="demo-chip" onclick="loadDemo('loop')">Loops</button>
+          <button class="demo-chip" onclick="loadDemo('input')">
+            Input (Poro)
+          </button>
+          <button class="demo-chip" onclick="loadDemo('math')">Math</button>
           <button class="demo-chip" onclick="loadDemo('logic')">Logic</button>
-          <button class="demo-chip" onclick="loadDemo('list')">Array</button>
-          <button class="demo-chip" onclick="loadDemo('input')">Input</button>
+          <button class="demo-chip" onclick="loadDemo('loop')">Loops</button>
         </div>
 
-        <div class="editor-wrapper">
+        <div
+          class="editor-wrapper"
+          onclick="document.getElementById('code-input').focus()"
+        >
           <div class="line-numbers" id="line-numbers">1</div>
           <pre id="highlight-layer" aria-hidden="true"></pre>
           <textarea
@@ -743,19 +816,23 @@
             onkeydown="handleTab(event)"
           >
 boss
-    // KhaliError Ultimate Demo
-    dhor tk = 500;
+    // KhaliError Ultimate Math & Input Demo
+    dhor a = 50;
+    dhor b = 25;
+    dhor jog = a + b;
     
-    dekh "Amar kache ache: ";
-    dekh tk;
+    dekh "Jogfol holo: " + jog;
     dekh "\n";
 
-    basta items = {10, 20, 30};
-
-    jodi (tk > 100) {
-        dekh "Party hobe boss!";
+    // Custom Input (Poro)
+    dhor user_tk = poro("Koto taka ache?");
+    dhor khoroch = 60;
+    
+    jodi (user_tk > khoroch) {
+        dhor baki = user_tk - khoroch;
+        dekh "Khoroch korar por baki: " + baki;
     } nahole {
-        dekh "Gorib hoye gelam...";
+        dekh "Taka nai boss!";
     }
 khotom</textarea
           >
@@ -925,7 +1002,7 @@ khotom</textarea
             <tr>
               <td class="hl-kw">TOK_PORO</td>
               <td>poro</td>
-              <td>Standard Input command.</td>
+              <td>Standard Input command (Custom Modal).</td>
             </tr>
           </table>
 
@@ -988,11 +1065,10 @@ khotom</textarea
           >
             <img
               src="developer.jpg"
-              alt="Admin"
+              alt="Dev"
               style="width: 100%; height: 100%; object-fit: cover"
             />
           </div>
-
           <h3 style="margin: 0; font-size: 1.6rem; color: white">
             Md. Ahsanur Rahaman
           </h3>
@@ -1004,9 +1080,8 @@ khotom</textarea
               font-size: 0.9rem;
             "
           >
-            Compiler Engineer & AI/ML Enthusiastic
+            Programming | Data Science | AI/ML Enthusiast
           </p>
-
           <div
             style="
               text-align: left;
@@ -1019,16 +1094,15 @@ khotom</textarea
             "
           >
             <p style="margin-bottom: 10px">
-              👋 <strong>Bio:</strong><br />Passionate about making computer
-              science concepts accessible through interactive tools[cite: 20].
+              👋 <strong>Bio:</strong><br />Building the future of coding
+              education with interactive tools.
             </p>
             <p style="margin-bottom: 10px">
-              🛠 <strong>Stack:</strong><br />C++, HTML, CSS, JS, WebAssembly,
-              System Design.
+              🛠 <strong>Stack:</strong><br />C++,HTML, CSS, JS, WebAssembly, System
+              Design.
             </p>
             <p>📍 <strong>Location:</strong> Joypurhat, Bangladesh</p>
           </div>
-
           <div
             style="
               margin-top: 25px;
@@ -1045,7 +1119,7 @@ khotom</textarea
             </button>
             <button
               class="nav-btn"
-              onclick="window.open('https://www.linkedin.com/in/md-ahsanur-rahaman/', '_blank')"
+              onclick="window.open('https://linkedin.com/in/md-ahsanur-rahaman/', '_blank')"
             >
               LinkedIn
             </button>
@@ -1055,7 +1129,7 @@ khotom</textarea
     </div>
 
     <script>
-      // --- UTILS (Toast & Copy) ---
+      // --- UTILS & TOAST ---
       function showToast(message) {
         const toast = document.getElementById("toast");
         const msg = document.getElementById("toast-msg");
@@ -1072,7 +1146,7 @@ khotom</textarea
       function copyTutCode(code) {
         const decoded = decodeURIComponent(code);
         navigator.clipboard.writeText(decoded);
-        showToast("Tutorial code copied! Pasting...");
+        showToast("Tutorial code copied!");
         closeModal("tutorial-modal");
         document.getElementById("code-input").value = decoded;
         updateEditor();
@@ -1087,63 +1161,88 @@ khotom</textarea
         a.click();
       }
 
-      // --- TUTORIAL DATA ---
+      // --- CUSTOM PROMPT LOGIC ---
+      function customPoro(message) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById("prompt-modal");
+          const msgEl = document.getElementById("prompt-message");
+          const inputEl = document.getElementById("prompt-input");
+          const btnEl = document.getElementById("prompt-submit");
+
+          msgEl.innerText = message || "Input required:";
+          inputEl.value = "";
+          modal.style.display = "flex";
+          inputEl.focus();
+
+          const submit = () => {
+            const val = inputEl.value;
+            modal.style.display = "none";
+            resolve(val);
+          };
+
+          btnEl.onclick = submit;
+          inputEl.onkeydown = (e) => {
+            if (e.key === "Enter") submit();
+          };
+        });
+      }
+
+      // --- TUTORIAL GENERATOR ---
       const tutorials = [
         {
           title: "1. Hello World",
-          desc: "প্রোগ্রামিং জগতের প্রথম ধাপ। স্ক্রিনে কিছু প্রিন্ট করা।",
-          code: `boss\n    dekh "Salam Boss! Kemon acho?";\nkhotom`,
+          desc: "বেসিক প্রিন্ট করা।",
+          code: `boss\n    dekh "Salam Boss!";\nkhotom`,
         },
         {
-          title: "2. Variables (Taka Poisha)",
-          desc: "ভ্যারিয়েবল ডিক্লেয়ার করতে dhor ব্যবহার করা হয়।",
-          code: `boss\n    dhor taka = 100;\n    dhor khoroch = 20;\n    dekh "Baki ache: ";\n    dekh taka - khoroch;\nkhotom`,
+          title: "2. Variable & Math",
+          desc: "অঙ্ক করা এবং ভ্যারিয়েবল।",
+          code: `boss\n    dhor a = 10;\n    dhor b = 20;\n    dekh a + b;\nkhotom`,
         },
         {
-          title: "3. String Joining",
-          desc: "দুইটা লেখা বা লেখা ও নাম্বার জোড়া লাগানো।",
-          code: `boss\n    dhor nam = "Rahim";\n    dhor age = 25;\n    dekh nam + " er boyosh " + age;\nkhotom`,
+          title: "3. Input (Poro)",
+          desc: "ইউজারের থেকে ইনপুট নেওয়া।",
+          code: `boss\n    dhor nam = poro("Nam ki?");\n    dekh "Hello " + nam;\nkhotom`,
         },
         {
           title: "4. Conditional Logic",
-          desc: "সিদ্ধান্ত নেওয়া - যদি সত্য হয় তবে এটা করো, নাহলে ওটা।",
-          code: `boss\n    dhor mark = 80;\n    jodi (mark >= 33) {\n        dekh "Pass korechos mama!";\n    } nahole {\n        dekh "Fail... porashona koro.";\n    }\nkhotom`,
+          desc: "If/Else লজিক।",
+          code: `boss\n    dhor tk = 50;\n    jodi (tk > 20) {\n        dekh "Borolox";\n    } nahole {\n        dekh "Gorib";\n    }\nkhotom`,
         },
         {
-          title: "5. Namta (Multiplication)",
-          desc: "লুপ ব্যবহার করে ৫ এর নামতা প্রিন্ট করা।",
-          code: `boss\n    chol(dhor i=1; i<=10; i=i+1) {\n        dhor gun = 5 * i;\n        dekh "5 x " + i + " = " + gun;\n        dekh "\\n";\n    }\nkhotom`,
+          title: "5. Loop (Chol)",
+          desc: "লুপ চালানো।",
+          code: `boss\n    chol(dhor i=1; i<=5; i=i+1) {\n        dekh i;\n    }\nkhotom`,
         },
         {
-          title: "6. While Loop (Jotokhon)",
-          desc: "যতক্ষণ শর্ত সত্য থাকবে, লুপ চলবে।",
-          code: `boss\n    dhor battery = 5;\n    jotokhon (battery > 0) {\n        dekh "Charging: " + battery + "%\\n";\n        battery = battery - 1;\n    }\n    dekh "Phone Dead!";\nkhotom`,
+          title: "6. While Loop",
+          desc: "যতক্ষণ সত্য, ততক্ষণ চলবে।",
+          code: `boss\n    dhor i = 0;\n    jotokhon (i < 5) {\n        dekh i;\n        i = i + 1;\n    }\nkhotom`,
         },
         {
           title: "7. Array (Basta)",
-          desc: "লিস্ট বা অ্যারে তৈরি এবং এক্সেস করা।",
-          code: `boss\n    basta fol = {"Aam", "Jaam", "Kola"};\n    dekh "Amar priyo fol: " + fol[0];\nkhotom`,
+          desc: "লিস্ট বা অ্যারে।",
+          code: `boss\n    basta nums = {1, 2, 3};\n    dekh nums[0];\nkhotom`,
         },
         {
-          title: "8. Even/Odd Checker",
-          desc: "সংখ্যাটি জোড় না বিজোড় তা বের করা।",
-          code: `boss\n    dhor num = 9;\n    jodi (num % 2 == 0) {\n        dekh "Jor Sonkha";\n    } nahole {\n        dekh "Bijor Sonkha";\n    }\nkhotom`,
+          title: "8. Namta (Project)",
+          desc: "৫ এর নামতা।",
+          code: `boss\n    chol(dhor i=1; i<=10; i=i+1) {\n        dekh "5 x " + i + " = " + (5*i);\n        dekh "\\n";\n    }\nkhotom`,
         },
         {
-          title: "9. Nested Loop",
-          desc: "লুপের ভেতর লুপ (Pattern Printing)।",
-          code: `boss\n    chol(dhor i=1; i<=3; i=i+1) {\n        chol(dhor j=1; j<=i; j=j+1) {\n            dekh "*";\n        }\n        dekh "\\n";\n    }\nkhotom`,
+          title: "9. Even/Odd Check",
+          desc: "জোড়/বিজোড় বের করা।",
+          code: `boss\n    dhor n = poro("Number dao:");\n    jodi (n % 2 == 0) {\n        dekh "Jor";\n    } nahole {\n        dekh "Bijor";\n    }\nkhotom`,
         },
         {
-          title: "10. User Input",
-          desc: "ইউজারের থেকে ডাটা নেওয়া।",
-          code: `boss\n    dhor nam = poro("Tomar nam ki?");\n    dekh "Swagotom " + nam;\nkhotom`,
+          title: "10. Complex Math",
+          desc: "বড় গাণিতিক হিসাব।",
+          code: `boss\n    dhor res = (10 + 5) * 2 / 3;\n    dekh res;\nkhotom`,
         },
       ];
 
       const tutContainer = document.getElementById("tutorial-container");
       tutorials.forEach((tut, index) => {
-        // Highlighting
         let safeCode = tut.code
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
@@ -1227,26 +1326,25 @@ khotom</textarea
           updateEditor();
         }
       }
-
       updateEditor();
 
       // --- DEMO LOADER ---
+      const DEMOS = {
+        hello: tutorials[0].code,
+        vars: tutorials[1].code,
+        input: tutorials[2].code,
+        logic: tutorials[3].code,
+        loop: tutorials[4].code,
+        list: tutorials[6].code,
+        math: tutorials[9].code,
+      };
       function loadDemo(type) {
-        // Map demos to tutorials code for consistency or define separate demo set
-        const demoMap = {
-          hello: tutorials[0].code,
-          vars: tutorials[1].code,
-          loop: tutorials[4].code,
-          logic: tutorials[3].code,
-          list: tutorials[6].code,
-          input: tutorials[9].code,
-        };
-        codeInput.value = demoMap[type];
+        codeInput.value = DEMOS[type];
         updateEditor();
-        showToast("Demo code loaded!");
+        showToast("Demo loaded!");
       }
 
-      // --- COMPILER LOGIC ---
+      // --- INTERPRETER & VISUALIZER ---
       const TOKEN_MAP = {
         boss: "tok-boss",
         khotom: "tok-boss",
@@ -1270,31 +1368,49 @@ khotom</textarea
 
         const tokens = tokenize(code);
 
+        // Visualize Tokens
         tokens.forEach((token, index) => {
           setTimeout(() => {
             const div = document.createElement("div");
             div.className = `token ${token.class}`;
             div.innerHTML = `<strong>${token.value}</strong><span>${token.type}</span>`;
             tokenArea.appendChild(div);
-          }, index * 50);
+          }, index * 30);
         });
 
-        setTimeout(
-          () => runInterpreter(tokens, terminal),
-          tokens.length * 50 + 500
-        );
+        // Run Logic ASYNC
+        setTimeout(async () => {
+          try {
+            await runInterpreter(code, terminal);
+          } catch (e) {
+            terminal.innerText += "\n[Error] " + e.message;
+          }
+        }, tokens.length * 30 + 500);
       }
 
       function tokenize(src) {
         const tokens = [];
         let cursor = 0;
         while (cursor < src.length) {
-          let char = src[cursor];
+          const char = src[cursor];
           if (/\s/.test(char)) {
             cursor++;
             continue;
           }
-          if (char === '"') {
+
+          if (/[a-zA-Z_]/.test(char)) {
+            let val = "";
+            while (cursor < src.length && /[a-zA-Z0-9_]/.test(src[cursor]))
+              val += src[cursor++];
+            let cls = TOKEN_MAP[val] || "tok-op";
+            tokens.push({
+              type: TOKEN_MAP[val] ? "KEYWORD" : "ID",
+              value: val,
+              class: cls,
+            });
+            continue;
+          }
+          if (/"/.test(char)) {
             let val = "";
             cursor++;
             while (cursor < src.length && src[cursor] !== '"')
@@ -1314,76 +1430,71 @@ khotom</textarea
             tokens.push({ type: "NUMBER", value: val, class: "tok-num" });
             continue;
           }
-          if (/[a-zA-Z_]/.test(char)) {
-            let val = "";
-            while (cursor < src.length && /[a-zA-Z0-9_]/.test(src[cursor]))
-              val += src[cursor++];
-            let cssClass = TOKEN_MAP[val] || "tok-op";
-            tokens.push({
-              type: TOKEN_MAP[val] ? "KEYWORD" : "IDENT",
-              value: val,
-              class: cssClass,
-            });
-            continue;
-          }
-          if ("+-*/%=<>{}(),;[]".includes(char)) {
-            tokens.push({ type: "SYMBOL", value: char, class: "tok-op" });
-            cursor++;
-            continue;
-          }
+          tokens.push({ type: "SYMBOL", value: char, class: "tok-op" });
           cursor++;
         }
         return tokens;
       }
 
-      function runInterpreter(tokens, term) {
-        let output = "";
-        let hasBoss = tokens.some((t) => t.value === "boss");
+      // --- ASYNC INTERPRETER (WITH PORO SUPPORT) ---
+      async function runInterpreter(code, term) {
+        // Transpile to Async JS
+        let transpile = code;
 
-        if (!hasBoss)
-          output = "[Error] 'boss' missing! Start code with 'boss'.\n";
-        else {
-          for (let i = 0; i < tokens.length; i++) {
-            if (tokens[i].value === "dekh" && tokens[i + 1]) {
-              let val = tokens[i + 1].value;
-              if (val.startsWith('"')) val = val.slice(1, -1);
-              if (val === "\\n") val = "\n";
-              output += val;
-            }
-          }
-          if (output === "") output = "\n[Program finished. No output.]";
-          else output += "\n\n[Process completed code 0]";
-        }
+        // Basic Replacements
+        transpile = transpile.replace(
+          /\b(boss)\b/g,
+          "return (async function(){ try {"
+        );
+        transpile = transpile.replace(
+          /\b(khotom)\b/g,
+          "} catch(e){ console.error(e); } })();"
+        );
+        transpile = transpile.replace(/\bdhor\s+([a-zA-Z0-9_]+)/g, "let $1");
+        transpile = transpile.replace(/\bdekh\s+(.*);/g, "log($1);");
 
-        term.innerHTML = "";
-        let i = 0;
-        function type() {
-          if (i < output.length) {
-            term.innerHTML += output.charAt(i);
-            i++;
-            term.scrollTop = term.scrollHeight;
-            setTimeout(type, 15);
-          } else {
-            term.innerHTML += '<span class="cursor"></span>';
-          }
-        }
-        type();
+        // Handle Poro with Await and Custom Function
+        transpile = transpile.replace(
+          /\bporo\s*\((.*)\)/g,
+          "await customPoro($1)"
+        );
+
+        transpile = transpile.replace(/\bchol\s*\((.*)\)/g, "for($1)");
+        transpile = transpile.replace(/\bjotokhon\s*\((.*)\)/g, "while($1)");
+        transpile = transpile.replace(/\bjodi\s*\((.*)\)/g, "if($1)");
+        transpile = transpile.replace(/\bnahole\b/g, "else");
+        transpile = transpile.replace(
+          /\bbasta\s+([a-zA-Z0-9_]+)\s*=\s*{(.*)}/g,
+          "let $1 = [$2]"
+        );
+
+        const log = (msg) => {
+          term.innerText += msg + "\n";
+          term.scrollTop = term.scrollHeight;
+        };
+
+        term.innerText = "";
+        if (!code.includes("boss"))
+          throw new Error("Code must start with 'boss'");
+
+        // Execute safely
+        const run = new Function("log", "customPoro", transpile);
+        await run(log, customPoro);
+
+        term.innerText += "\n[Process finished code 0]";
       }
 
-      function clearTerminal() {
-        document.getElementById("terminal-output").innerHTML =
-          '<span class="cursor"></span>';
-      }
+      // Modal Logic
       function openModal(id) {
         document.getElementById(id).style.display = "flex";
       }
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
       }
-      window.onclick = (e) => {
-        if (e.target.className === "modal-overlay")
-          e.target.style.display = "none";
-      };
+      function clearTerminal() {
+        document.getElementById("terminal-output").innerHTML =
+          '<span class="cursor"></span>';
+      }
     </script>
   </body>
 </html>
