@@ -263,6 +263,16 @@
         font-style: italic;
       }
 
+      /* Undeclared variable highlight */
+      .kw-err {
+        color: #ff7b72;
+        background: rgba(255, 123, 114, 0.08);
+        border: 1px solid rgba(255, 123, 114, 0.18);
+        padding: 0 4px;
+        border-radius: 3px;
+        font-weight: 700;
+      }
+
       .line-numbers {
         position: absolute;
         top: 0;
@@ -995,8 +1005,8 @@ khotom</textarea
               <td>Fallback conditional branching (Else).</td>
             </tr>
             <tr>
-              <td class="hl-kw">TOK_BASTA</td>
-              <td>basta</td>
+              <td class="hl-kw">TOK_DRUM</td>
+              <td>drum</td>
               <td>Data Structure definition for Arrays.</td>
             </tr>
             <tr>
@@ -1098,8 +1108,8 @@ khotom</textarea
               education with interactive tools.
             </p>
             <p style="margin-bottom: 10px">
-              🛠 <strong>Stack:</strong><br />C++,HTML, CSS, JS, WebAssembly, System
-              Design.
+              🛠 <strong>Stack:</strong><br />C++,HTML, CSS, JS, WebAssembly,
+              System Design.
             </p>
             <p>📍 <strong>Location:</strong> Joypurhat, Bangladesh</p>
           </div>
@@ -1175,9 +1185,15 @@ khotom</textarea
           inputEl.focus();
 
           const submit = () => {
-            const val = inputEl.value;
+            let val = inputEl.value;
             modal.style.display = "none";
-            resolve(val);
+            if (typeof val === "string") val = val.trim();
+            // Auto-convert numeric-looking input to Number
+            if (val !== "" && !isNaN(val)) {
+              resolve(Number(val));
+            } else {
+              resolve(val);
+            }
           };
 
           btnEl.onclick = submit;
@@ -1220,9 +1236,9 @@ khotom</textarea
           code: `boss\n    dhor i = 0;\n    jotokhon (i < 5) {\n        dekh i;\n        i = i + 1;\n    }\nkhotom`,
         },
         {
-          title: "7. Array (Basta)",
+          title: "7. Array (Drum)",
           desc: "লিস্ট বা অ্যারে।",
-          code: `boss\n    basta nums = {1, 2, 3};\n    dekh nums[0];\nkhotom`,
+          code: `boss\n    drum nums = {1, 2, 3};\n    dekh nums[0];\nkhotom`,
         },
         {
           title: "8. Namta (Project)",
@@ -1251,7 +1267,7 @@ khotom</textarea
           .replace(/("[^"]*")/g, '<span class="hl-str">$1</span>')
           .replace(/\b(boss|khotom)\b/g, '<span class="hl-boss">$1</span>')
           .replace(
-            /\b(dhor|dekh|chol|jodi|nahole|jotokhon|basta|poro)\b/g,
+            /\b(dhor|dekh|chol|jodi|nahole|jotokhon|drum|poro)\b/g,
             '<span class="hl-kw">$1</span>'
           )
           .replace(/\b(\d+)\b/g, '<span class="hl-num">$1</span>');
@@ -1298,11 +1314,29 @@ khotom</textarea
           '<span class="kw-boss">$1</span>'
         );
         text = text.replace(
-          /\b(dhor|dekh|jodi|nahole|chol|basta|poro|jotokhon)\b/g,
+          /\b(dhor|dekh|jodi|nahole|chol|drum|poro|jotokhon)\b/g,
           '<span class="kw-main">$1</span>'
         );
         text = text.replace(/\b(\d+)\b/g, '<span class="kw-num">$1</span>');
         text = text.replace(/(\/\/.*)/g, '<span class="kw-com">$1</span>');
+
+        // Highlight undeclared identifiers in red
+        try {
+          const undeclared = getUndeclaredIdentifiers(codeInput.value);
+          if (undeclared && undeclared.length) {
+            // build regex alternation safely
+            const names = undeclared
+              .map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+              .join("|");
+            if (names.length) {
+              const re = new RegExp("\\b(" + names + ")\\b", "g");
+              text = text.replace(re, '<span class="kw-err">$1</span>');
+            }
+          }
+        } catch (e) {
+          // If analysis fails, don't break editor highlighting
+          console.error("Analysis error:", e);
+        }
 
         highlightLayer.innerHTML = text + "<br>";
       }
@@ -1354,7 +1388,7 @@ khotom</textarea
         nahole: "tok-kw",
         chol: "tok-kw",
         jotokhon: "tok-kw",
-        basta: "tok-kw",
+        drum: "tok-kw",
         poro: "tok-kw",
       };
 
@@ -1393,8 +1427,43 @@ khotom</textarea
         let cursor = 0;
         while (cursor < src.length) {
           const char = src[cursor];
+          // Skip whitespace
           if (/\s/.test(char)) {
             cursor++;
+            continue;
+          }
+
+          // Single-line comment (//...) - consume and emit COMMENT token
+          if (char === "/" && src[cursor + 1] === "/") {
+            let val = "";
+            cursor += 2;
+            while (cursor < src.length && src[cursor] !== "\n")
+              val += src[cursor++];
+            tokens.push({
+              type: "COMMENT",
+              value: `//${val}`,
+              class: "tok-com",
+            });
+            continue;
+          }
+
+          // Multi-line comment (/* ... */) - consume and emit COMMENT token
+          if (char === "/" && src[cursor + 1] === "*") {
+            let val = "";
+            cursor += 2;
+            while (
+              cursor < src.length &&
+              !(src[cursor] === "*" && src[cursor + 1] === "/")
+            ) {
+              val += src[cursor++];
+            }
+            // consume closing */
+            if (cursor < src.length) cursor += 2;
+            tokens.push({
+              type: "COMMENT",
+              value: `/*${val}*/`,
+              class: "tok-com",
+            });
             continue;
           }
 
@@ -1436,6 +1505,32 @@ khotom</textarea
         return tokens;
       }
 
+      // --- STATIC ANALYSIS: Find undeclared identifiers ---
+      function getUndeclaredIdentifiers(src) {
+        const toks = tokenize(src);
+        const declared = new Set();
+        const used = new Set();
+        for (let i = 0; i < toks.length; i++) {
+          const t = toks[i];
+          if (t.type === "KEYWORD" && t.value === "dhor") {
+            // next token is variable name (if present)
+            if (i + 1 < toks.length && toks[i + 1].type === "ID") {
+              declared.add(toks[i + 1].value);
+            }
+          } else if (t.type === "ID") {
+            used.add(t.value);
+          }
+        }
+
+        // Remove keywords / builtins from used
+        Object.keys(TOKEN_MAP).forEach((k) => used.delete(k));
+
+        // Remove declared from used -> what's left are undeclared usages
+        declared.forEach((d) => used.delete(d));
+
+        return Array.from(used);
+      }
+
       // --- ASYNC INTERPRETER (WITH PORO SUPPORT) ---
       async function runInterpreter(code, term) {
         // Transpile to Async JS
@@ -1444,7 +1539,7 @@ khotom</textarea
         // Basic Replacements
         transpile = transpile.replace(
           /\b(boss)\b/g,
-          "return (async function(){ try {"
+          "return (async function(){ 'use strict'; try {"
         );
         transpile = transpile.replace(
           /\b(khotom)\b/g,
@@ -1458,6 +1553,20 @@ khotom</textarea
           /\bporo\s*\((.*)\)/g,
           "await customPoro($1)"
         );
+
+        // Insert safe addition helper and replace simple '+' with __op_add
+        // Helper will throw if operands are mixed (number + string)
+        const addHelper = `const __op_add = (x,y) => {
+            if (typeof x === 'number' && typeof y === 'number') return x + y;
+            if (typeof x === 'string' && typeof y === 'string') return x + y;
+            throw new Error('TypeError: invalid operands for +: ' + typeof x + ' + ' + typeof y);
+          };`;
+        transpile = transpile.replace(/try\s*\{/, `try { ${addHelper} `);
+
+        // NOTE: Avoid aggressive global '+' replacement here because
+        // naive regex transforms can produce invalid JS for complex expressions.
+        // We keep the helper available (inserted above) and may target
+        // specific cases later with a proper parser.
 
         transpile = transpile.replace(/\bchol\s*\((.*)\)/g, "for($1)");
         transpile = transpile.replace(/\bjotokhon\s*\((.*)\)/g, "while($1)");
@@ -1476,6 +1585,16 @@ khotom</textarea
         term.innerText = "";
         if (!code.includes("boss"))
           throw new Error("Code must start with 'boss'");
+
+        // Static check: prevent execution if there are undeclared identifiers
+        const undeclared = getUndeclaredIdentifiers(code);
+        if (undeclared && undeclared.length) {
+          throw new Error(
+            "Undeclared variable(s) found: " +
+              undeclared.join(", ") +
+              ". Declare with 'dhor <name>' before use."
+          );
+        }
 
         // Execute safely
         const run = new Function("log", "customPoro", transpile);
