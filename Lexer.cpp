@@ -47,7 +47,7 @@ vector<Token> tokenize(const string& src) {
             else if (val == "nahole") tokens.push_back({TOK_NAHOLE, val, line});
             else if (val == "chol") tokens.push_back({TOK_CHOL, val, line});
             else if (val == "jotokhon") tokens.push_back({TOK_JOTOKHON, val, line});
-            else if (val == "basta") tokens.push_back({TOK_BASTA, val, line});
+            else if (val == "drum") tokens.push_back({TOK_DRUM, val, line});
             else if (val == "poro") tokens.push_back({TOK_PORO, val, line});
             else tokens.push_back({TOK_IDENTIFIER, val, line});
             continue;
