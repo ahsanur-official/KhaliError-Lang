@@ -1090,7 +1090,7 @@ khotom</textarea
               font-size: 0.9rem;
             "
           >
-            Programmer | AI/ML Enthusiast
+            Programming | Data Science | AI/ML Enthusiast
           </p>
           <div
             style="
@@ -1228,7 +1228,7 @@ khotom</textarea
         {
           title: "5. Loop (Chol)",
           desc: "লুপ চালানো।",
-          code: `boss\n    chol(dhor i=1; i<=5; i=i+1) {\n        dekh i;\n    }\nkhotom`,
+          code: `boss\n    chol(dhor i=1; i<=5; i=i+1) {\n        dekh "Item: " + i;\n        dekh "\\n";\n    }\nkhotom`,
         },
         {
           title: "6. While Loop",
@@ -1254,6 +1254,16 @@ khotom</textarea
           title: "10. Complex Math",
           desc: "বড় গাণিতিক হিসাব।",
           code: `boss\n    dhor res = (10 + 5) * 2 / 3;\n    dekh res;\nkhotom`,
+        },
+        {
+          title: "11. Char Loop (a → z)",
+          desc: "একটি চর থেকে অন্য চরে লুপ চালিয়ে স্ট্রিং প্রিন্ট করা (char code ব্যবহার করে)",
+          code: `boss\n    // Use ASCII codes to loop characters\n    dhor start = 97; // 'a'\n    dhor end = 122;  // 'z'\n    chol(dhor c = start; c <= end; c = c + 1) {\n        dekh String.fromCharCode(c);\n        dekh "\\n";\n    }\nkhotom`,
+        },
+        {
+          title: "12. Char Loop (a → z) — nice syntax",
+          desc: "সোজা সিনট্যাক্স ব্যবহার করে a থেকে z পর্যন্ত চর প্রিন্ট করা (উদাহরণ) ",
+          code: `boss\n    chol(dhor i="a"; i<="z"; i=i+1) {\n        dekh i;\n        dekh "\\n";\n    }\nkhotom`,
         },
       ];
 
@@ -1512,7 +1522,7 @@ khotom</textarea
         const used = new Set();
         for (let i = 0; i < toks.length; i++) {
           const t = toks[i];
-          if (t.type === "KEYWORD" && t.value === "dhor") {
+          if (t.type === "KEYWORD" && (t.value === "dhor" || t.value === "drum")) {
             // next token is variable name (if present)
             if (i + 1 < toks.length && toks[i + 1].type === "ID") {
               declared.add(toks[i + 1].value);
@@ -1522,8 +1532,29 @@ khotom</textarea
           }
         }
 
-        // Remove keywords / builtins from used
+        // Remove keywords from used
         Object.keys(TOKEN_MAP).forEach((k) => used.delete(k));
+
+        // Common JS globals and builtin methods that are safe to use
+        const BUILTIN_IDENTIFIERS = new Set([
+          "String",
+          "Math",
+          "Number",
+          "console",
+          "JSON",
+          "Array",
+          "Object",
+          "parseInt",
+          "parseFloat",
+          "isNaN",
+          "Date",
+          "RegExp",
+          // common method identifiers that may appear as separate IDs
+          "fromCharCode",
+          "charCodeAt",
+        ]);
+
+        BUILTIN_IDENTIFIERS.forEach((b) => used.delete(b));
 
         // Remove declared from used -> what's left are undeclared usages
         declared.forEach((d) => used.delete(d));
@@ -1568,13 +1599,52 @@ khotom</textarea
         // We keep the helper available (inserted above) and may target
         // specific cases later with a proper parser.
 
-        transpile = transpile.replace(/\bchol\s*\((.*)\)/g, "for($1)");
+        // Handle 'chol' loops. Special-case: character loops like
+        // chol(dhor i="a"; i<="z"; i=i+1) { ... }
+        // will be transformed to use charCodeAt and String.fromCharCode
+        transpile = transpile.replace(/\bchol\s*\(([^)]*)\)/g, function(_, inner) {
+          try {
+            const parts = inner.split(";");
+            if (parts.length === 3) {
+              const init = parts[0].trim();
+              const cond = parts[1].trim();
+              const incr = parts[2].trim();
+              // match initializer like: dhor i = "a"  (allow dhor/drum or let after earlier replace)
+              const mInit = init.match(/(?:dhor|drum|let)?\s*([a-zA-Z0-9_]+)\s*=\s*['\"](.?)['\"]/);
+              if (mInit) {
+                const name = mInit[1];
+                const startChar = mInit[2];
+                // match condition like: i <= "z" or i < "z"
+                const mCond = cond.match(new RegExp(name + "\\s*(<=|>=|==|!=|<|>|\\u2264|\\u2265)\\s*['\\\"](.?)['\\\"]"));
+                if (mCond) {
+                  let op = mCond[1];
+                  const endChar = mCond[2];
+                  // normalize unicode operators to JS equivalents
+                  if (op === "\u2264") op = "<=";
+                  if (op === "\u2265") op = ">=";
+                  // match increment like: i = i + N (allow numeric step > 0)
+                  const mIncr = incr.match(new RegExp("^" + name + "\\s*=\\s*" + name + "\\s*\\+\\s*([0-9]+)$"));
+                  if (mIncr) {
+                    const step = parseInt(mIncr[1], 10);
+                    const newInit = init; // keep as-is (dhor -> let later)
+                    const newCond = name + ".charCodeAt(0) " + op + " \"" + endChar + "\".charCodeAt(0)";
+                    const newIncr = name + " = String.fromCharCode(" + name + ".charCodeAt(0) + " + step + ")";
+                    return "for(" + newInit + "; " + newCond + "; " + newIncr + ")";
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // fall back to generic replacement on any error
+          }
+          return "for(" + inner + ")";
+        });
         transpile = transpile.replace(/\bjotokhon\s*\((.*)\)/g, "while($1)");
         transpile = transpile.replace(/\bjodi\s*\((.*)\)/g, "if($1)");
         transpile = transpile.replace(/\bnahole\b/g, "else");
         transpile = transpile.replace(
-          /\bbasta\s+([a-zA-Z0-9_]+)\s*=\s*{(.*)}/g,
-          "let $1 = [$2]"
+          /\b(basta|drum)\s+([a-zA-Z0-9_]+)\s*=\s*{(.*)}/g,
+          "let $2 = [$3]"
         );
 
         const log = (msg) => {
